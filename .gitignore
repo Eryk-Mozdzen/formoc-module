@@ -1,3 +1,8 @@
+#Eagle backups
+
+*.b\#*
+*.s\#*
+
 # Prerequisites
 *.d
 
