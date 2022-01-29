@@ -1,0 +1,23 @@
+Current B, C:
+U [V] = I [A] * 0,666
+
+Current A+B+C:
+U [V] = I [A] * 0,168
+
+Precission current B, C:
+U [V] = I [A] * 0,300
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+U [V] = I [A] * (1+R) * Rsense
