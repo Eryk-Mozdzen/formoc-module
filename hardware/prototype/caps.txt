@@ -1,0 +1,5 @@
+Charge pump: 3100nF
+Bootstrap: 500nF
+Flying: 100nF
+
+VBat: 3x 100uF
