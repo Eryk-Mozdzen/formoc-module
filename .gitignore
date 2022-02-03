@@ -3,6 +3,12 @@
 *.b\#*
 *.s\#*
 
+# STM32Cube
+
+**/Debug
+**/.settings
+**/.metadata
+
 # Prerequisites
 *.d
 
