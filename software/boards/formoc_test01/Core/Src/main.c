@@ -58,6 +58,29 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+#define POWER	2000
+#define SPEED	100
+
+const uint16_t l_phases[6][3] = {
+	{0,		POWER,	0},
+	{POWER,	0,		0},
+	{POWER,	0, 		0},
+	{0,		0,		POWER},
+	{0,		0,		POWER},
+	{0,		POWER,	0}
+};
+
+const uint16_t h_phases[6][3] = {
+	{0,		0,		POWER},
+	{0,		0,		POWER},
+	{0,		POWER,	0},
+	{0,		POWER,	0},
+	{POWER,	0,		0},
+	{POWER,	0, 		0}
+};
+
+uint8_t curr_phase = 0;
+
 MCP8024_t mcp8024;
 
 /* USER CODE END 0 */
@@ -93,6 +116,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();
   MX_TIM3_Init();
+  MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -100,14 +125,53 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  MCP8024_Init(&mcp8024, &htim3, &huart1);
+  MCP8024_Init(&mcp8024, &htim3, &huart1, &htim2, &htim1);
 
   while(1) {
 
-	  MCP8024_ReadAll(&mcp8024);
+	  //MCP8024_ReadAll(&mcp8024);
 
-	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	  HAL_Delay(100);
+	  //HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+	  //MCP8024_SetFill(&mcp8024, 0, 0, 0, 0, 0, 0);
+
+	  /*MCP8024_SetFill(&mcp8024,
+			  l_phases[curr_phase][0],
+			  l_phases[curr_phase][1],
+			  l_phases[curr_phase][2],
+			  0,
+			  0,
+			  0
+	  );*/
+
+	  /*MCP8024_SetFill(&mcp8024,
+			  0,
+			  0,
+			  0,
+			  0.5*MCP8024_PWM_COMPARE_MAX,
+			  0,//h_phases[curr_phase][1],
+			  0//h_phases[curr_phase][2]
+	  );*/
+
+	  float fraq = 0.1;
+
+	  MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
+
+	  HAL_Delay(fraq*SPEED);
+
+	  MCP8024_SetFill(&mcp8024,
+			  l_phases[curr_phase][0],
+			  l_phases[curr_phase][1],
+			  l_phases[curr_phase][2],
+			  h_phases[curr_phase][0],
+			  h_phases[curr_phase][1],
+			  h_phases[curr_phase][2]
+	  );
+
+	  HAL_Delay((1.f-fraq)*SPEED);
+
+	  curr_phase++;
+	  curr_phase %=6;
 
 	  //__MCP8024_WriteCommand(&mcp8024, 159, NULL, 0);
 
@@ -168,7 +232,7 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	mcp8024.flag = 1;
+	MCP8024_RxCpltCallback(&mcp8024);
 }
 
 /* USER CODE END 4 */
