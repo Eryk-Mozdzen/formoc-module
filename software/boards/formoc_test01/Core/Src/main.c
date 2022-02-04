@@ -59,7 +59,8 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 #define POWER	2000
-#define SPEED	100
+#define SPEED	2
+#define OFFSET	0
 
 const uint16_t l_phases[6][3] = {
 	{0,		POWER,	0},
@@ -129,35 +130,9 @@ int main(void)
 
   while(1) {
 
-	  //MCP8024_ReadAll(&mcp8024);
-
-	  //HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
-	  //MCP8024_SetFill(&mcp8024, 0, 0, 0, 0, 0, 0);
-
-	  /*MCP8024_SetFill(&mcp8024,
-			  l_phases[curr_phase][0],
-			  l_phases[curr_phase][1],
-			  l_phases[curr_phase][2],
-			  0,
-			  0,
-			  0
-	  );*/
-
-	  /*MCP8024_SetFill(&mcp8024,
-			  0,
-			  0,
-			  0,
-			  0.5*MCP8024_PWM_COMPARE_MAX,
-			  0,//h_phases[curr_phase][1],
-			  0//h_phases[curr_phase][2]
-	  );*/
-
-	  float fraq = 0.1;
-
 	  MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
-
-	  HAL_Delay(fraq*SPEED);
+	  //MCP8024_SetFill(&mcp8024, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, 0, 0, 0);
+	  HAL_Delay(1);
 
 	  MCP8024_SetFill(&mcp8024,
 			  l_phases[curr_phase][0],
@@ -167,13 +142,16 @@ int main(void)
 			  h_phases[curr_phase][1],
 			  h_phases[curr_phase][2]
 	  );
+	  HAL_Delay(SPEED);
 
-	  HAL_Delay((1.f-fraq)*SPEED);
+	  uint16_t encoder_pos = __HAL_TIM_GET_COUNTER(mcp8024.encoder_timer);
+	  uint16_t angle = encoder_pos*360.f/512.f;
 
+	  angle *=6;
+
+	  //curr_phase = angle/60 + OFFSET;
 	  curr_phase++;
 	  curr_phase %=6;
-
-	  //__MCP8024_WriteCommand(&mcp8024, 159, NULL, 0);
 
     /* USER CODE END WHILE */
 

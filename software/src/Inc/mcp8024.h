@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define MCP8024_BUFFER_SIZE			256
-#define MCP8024_PWM_COMPARE_MAX		4000
+#define MCP8024_PWM_COMPARE_MAX		3999
 
 typedef enum {
 	MCP8024_SET_CFG_0 = 0x81,

@@ -3,6 +3,9 @@
 
 void MCP8024_Init(MCP8024_t *mcp8024, TIM_HandleTypeDef *encoder_timer, UART_HandleTypeDef *com_uart, TIM_HandleTypeDef *h_mosfet_timer, TIM_HandleTypeDef *l_mosfet_timer) {
 
+	HAL_GPIO_WritePin(CHIP_ENABLE_GPIO_Port, CHIP_ENABLE_Pin, GPIO_PIN_RESET);
+	HAL_Delay(100);
+
 	mcp8024->h_mosfet_timer = h_mosfet_timer;
 	mcp8024->l_mosfet_timer = l_mosfet_timer;
 	mcp8024->encoder_timer = encoder_timer;
@@ -14,10 +17,6 @@ void MCP8024_Init(MCP8024_t *mcp8024, TIM_HandleTypeDef *encoder_timer, UART_Han
 	HAL_TIM_Encoder_Start(mcp8024->encoder_timer, TIM_CHANNEL_1);
 	HAL_TIM_Encoder_Start(mcp8024->encoder_timer, TIM_CHANNEL_2);
 
-	HAL_GPIO_WritePin(CHIP_ENABLE_GPIO_Port, CHIP_ENABLE_Pin, GPIO_PIN_SET);
-
-	HAL_Delay(100);
-
 	//HAL_UART_Receive_IT(mcp8024->com_uart, mcp8024->buffer, 1);
 
 	HAL_TIM_PWM_Start(mcp8024->h_mosfet_timer, TIM_CHANNEL_1);
@@ -27,6 +26,9 @@ void MCP8024_Init(MCP8024_t *mcp8024, TIM_HandleTypeDef *encoder_timer, UART_Han
 	HAL_TIM_PWM_Start(mcp8024->l_mosfet_timer, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(mcp8024->l_mosfet_timer, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(mcp8024->l_mosfet_timer, TIM_CHANNEL_3);
+
+	HAL_GPIO_WritePin(CHIP_ENABLE_GPIO_Port, CHIP_ENABLE_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
 }
 
 void MCP8024_ReadAll(MCP8024_t *mcp8024) {
