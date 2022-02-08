@@ -2,7 +2,7 @@
 #define INC_PHASE_CURRENT_H_
 
 #include "stm32l4xx_hal.h"
-#include "vector3.h"
+#include "utilities.h"
 
 #define PHASE_CURRENT_ADC_RESOLUTION	4095	// LSB
 #define PHASE_CURRENT_ADC_REFERENCE		2.087f	// V

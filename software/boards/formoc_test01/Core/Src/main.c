@@ -27,6 +27,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "pid.h"
+#include "utilities.h"
+#include "transformations.h"
+
 #include "mcp8024.h"
 #include "phase_current.h"
 #include "motor.h"
@@ -93,6 +97,9 @@ MCP8024_t mcp8024;
 PhaseCurrent_t phase_current;
 Motor_t motor;
 
+PID_StructTypeDef Id_controller;
+PID_StructTypeDef Iq_controller;
+
 /* USER CODE END 0 */
 
 /**
@@ -141,6 +148,9 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  PID_Init(&Id_controller, 100, 0, 0, 1);	//?
+  PID_Init(&Iq_controller, 100, 0, 0, 1);	//?
 
   HAL_TIM_Base_Start(&htim7);
 
@@ -258,6 +268,24 @@ void PeriphCommonClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+Vector3f_t FOC(Vector3f_t Iabc, float rotor_angle, float Iq_setpoint) {
+	float theta = normalize_angle(rotor_angle);
+
+	Vector3f_t Iab0 = clark_transformation(Iabc);
+	Vector3f_t Idq0 = park_transformation(Iab0, theta);
+
+	Vector3f_t Vdq0 = {
+		PID_Update(&Id_controller, Idq0.x, 0),
+		PID_Update(&Iq_controller, Idq0.y, Iq_setpoint),
+		0
+	};
+
+	Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
+	Vector3f_t Vabc = space_vector_modulation(Vab0);
+
+	return Vabc;
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	MCP8024_RxCpltCallback(&mcp8024);
 }
@@ -266,6 +294,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	if(hadc->Instance==ADC1) {
 		delta_time = __HAL_TIM_GET_COUNTER(&htim7);
 		__HAL_TIM_SET_COUNTER(&htim7, 0);
+
+		float angle = Motor_GetElectricalPosition(&motor);
+		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
+		Vector3f_t fill = FOC(current, angle, 5);
+		//MCP8024_SetFill(&mcp8024, u_l, v_l, w_l, u_h, v_h, w_h)
 	}
 
 	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
