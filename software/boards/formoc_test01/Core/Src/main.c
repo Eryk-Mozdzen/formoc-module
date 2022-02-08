@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -26,6 +28,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "mcp8024.h"
+#include "phase_current.h"
 
 /* USER CODE END Includes */
 
@@ -51,6 +54,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -82,7 +86,10 @@ const uint16_t h_phases[6][3] = {
 
 uint8_t curr_phase = 0;
 
+uint32_t delta_time = 0;
+
 MCP8024_t mcp8024;
+PhaseCurrent_t phase_current;
 
 /* USER CODE END 0 */
 
@@ -108,6 +115,9 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+/* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -118,7 +128,11 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   MX_TIM2_Init();
+  MX_DMA_Init();
+  MX_ADC1_Init();
+  MX_ADC2_Init();
   MX_TIM1_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -129,7 +143,10 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
 
+  HAL_TIM_Base_Start(&htim7);
+
   MCP8024_Init(&mcp8024, &huart1, &htim2, &htim1);
+  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
   while(1) {
 
@@ -214,10 +231,44 @@ void SystemClock_Config(void)
   }
 }
 
+/**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.AdcClockSelection = RCC_ADCCLKSOURCE_PLLSAI1;
+  PeriphClkInit.PLLSAI1.PLLSAI1Source = RCC_PLLSOURCE_HSI;
+  PeriphClkInit.PLLSAI1.PLLSAI1M = 1;
+  PeriphClkInit.PLLSAI1.PLLSAI1N = 8;
+  PeriphClkInit.PLLSAI1.PLLSAI1P = RCC_PLLP_DIV7;
+  PeriphClkInit.PLLSAI1.PLLSAI1Q = RCC_PLLQ_DIV2;
+  PeriphClkInit.PLLSAI1.PLLSAI1R = RCC_PLLR_DIV2;
+  PeriphClkInit.PLLSAI1.PLLSAI1ClockOut = RCC_PLLSAI1_ADC1CLK;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
 /* USER CODE BEGIN 4 */
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	MCP8024_RxCpltCallback(&mcp8024);
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+	if(hadc->Instance==ADC1) {
+		delta_time = __HAL_TIM_GET_COUNTER(&htim7);
+		__HAL_TIM_SET_COUNTER(&htim7, 0);
+	}
+
+	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
 }
 
 /* USER CODE END 4 */
