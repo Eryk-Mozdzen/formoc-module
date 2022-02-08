@@ -126,11 +126,17 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  MCP8024_Init(&mcp8024, &htim3, &huart1, &htim2, &htim1);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
+
+  MCP8024_Init(&mcp8024, &huart1, &htim2, &htim1);
 
   while(1) {
 
-	  MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
+	  MCP8024_ReadAll(&mcp8024);
+	  HAL_Delay(1000);
+
+	  /*MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
 	  //MCP8024_SetFill(&mcp8024, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, 0, 0, 0);
 	  HAL_Delay(1);
 
@@ -151,7 +157,7 @@ int main(void)
 
 	  //curr_phase = angle/60 + OFFSET;
 	  curr_phase++;
-	  curr_phase %=6;
+	  curr_phase %=6;*/
 
     /* USER CODE END WHILE */
 
