@@ -12,10 +12,13 @@
 #include <stdint.h>
 
 typedef struct {
+	TIM_HandleTypeDef *timer;
+
 	uint32_t time_start;
+	float scale;
 } TimeBase_StructTypeDef;
 
-void TimeBase_Init(TimeBase_StructTypeDef *);
+void TimeBase_Init(TimeBase_StructTypeDef *, TIM_HandleTypeDef *, float);
 void TimeBase_Start(TimeBase_StructTypeDef *);
 uint32_t TimeBase_Restart(TimeBase_StructTypeDef *);
 uint32_t TimeBase_GetTimeElapsed(TimeBase_StructTypeDef *);

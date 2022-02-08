@@ -91,8 +91,6 @@ const uint16_t h_phases[6][3] = {
 
 uint8_t curr_phase = 0;
 
-uint32_t delta_time = 0;
-
 MCP8024_t mcp8024;
 PhaseCurrent_t phase_current;
 Motor_t motor;
@@ -149,10 +147,10 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  PID_Init(&Id_controller, 100, 0, 0, 1);	//?
-  PID_Init(&Iq_controller, 100, 0, 0, 1);	//?
-
   HAL_TIM_Base_Start(&htim7);
+
+  PID_Init(&Id_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
+  PID_Init(&Iq_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
 
   MCP8024_Init(&mcp8024, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
@@ -292,8 +290,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	if(hadc->Instance==ADC1) {
-		delta_time = __HAL_TIM_GET_COUNTER(&htim7);
-		__HAL_TIM_SET_COUNTER(&htim7, 0);
 
 		float angle = Motor_GetElectricalPosition(&motor);
 		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
