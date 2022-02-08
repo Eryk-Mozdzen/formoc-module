@@ -133,7 +133,7 @@ int main(void)
 
   while(1) {
 
-	  MCP8024_ReadAll(&mcp8024);
+	  MCP8024_ReadAllRegisters(&mcp8024);
 	  HAL_Delay(1000);
 
 	  /*MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
