@@ -29,6 +29,7 @@
 
 #include "mcp8024.h"
 #include "phase_current.h"
+#include "motor.h"
 
 /* USER CODE END Includes */
 
@@ -90,6 +91,7 @@ uint32_t delta_time = 0;
 
 MCP8024_t mcp8024;
 PhaseCurrent_t phase_current;
+Motor_t motor;
 
 /* USER CODE END 0 */
 
@@ -140,13 +142,11 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_2);
-
   HAL_TIM_Base_Start(&htim7);
 
   MCP8024_Init(&mcp8024, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
+  Motor_Init(&motor, &htim3);
 
   while(1) {
 
