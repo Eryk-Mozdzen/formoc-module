@@ -5,9 +5,6 @@
 #include <string.h>
 #include "mcp8024_def.h"
 
-#define MCP8024_BUFFER_SIZE			64
-#define MCP8024_PWM_COMPARE_MAX		3999
-
 typedef struct {
 	TIM_HandleTypeDef *h_mosfet_timer;
 	TIM_HandleTypeDef *l_mosfet_timer;
@@ -15,12 +12,21 @@ typedef struct {
 	UART_HandleTypeDef *com_uart;
 	uint8_t com_flag;
 
-	struct {
-		MCP8024_Status_0_t status_0;
-		MCP8024_Status_1_t status_1;
-		uint8_t config_0;
-		uint8_t config_1;
-		uint8_t config_2;
+	union {
+		struct {
+			uint8_t status_0;
+			uint8_t status_1;
+			uint8_t config_0;
+			uint8_t config_1;
+			uint8_t config_2;
+		} raw;
+		struct {
+			MCP8024_Status_0_t status_0;
+			MCP8024_Status_1_t status_1;
+			MCP8024_Config_0_t config_0;
+			MCP8024_Config_1_t config_1;
+			MCP8024_Config_2_t config_2;
+		} decoded;
 	} registers;
 } MCP8024_t;
 

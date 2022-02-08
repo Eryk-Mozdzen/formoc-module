@@ -44,14 +44,14 @@ void MCP8024_Config(MCP8024_t *mcp8024) {
 }
 
 void MCP8024_GetStatus(MCP8024_t *mcp8024) {
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_0, NULL, NULL, (uint8_t *)&mcp8024->registers.status_0);
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_1, NULL, NULL, (uint8_t *)&mcp8024->registers.status_1);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_0, NULL, NULL, &mcp8024->registers.raw.status_0);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_1, NULL, NULL, &mcp8024->registers.raw.status_1);
 }
 
 void MCP8024_GetConfig(MCP8024_t *mcp8024) {
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_0, NULL, NULL, &mcp8024->registers.config_0);
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_1, NULL, NULL, &mcp8024->registers.config_1);
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_2, NULL, NULL, &mcp8024->registers.config_2);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_0, NULL, NULL, &mcp8024->registers.raw.config_0);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_1, NULL, NULL, &mcp8024->registers.raw.config_1);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_2, NULL, NULL, &mcp8024->registers.raw.config_2);
 }
 
 void MCP8024_SetConfig(MCP8024_t *mcp8024, MCP8024_Config_0_t config_0, MCP8024_Config_1_t config_1, MCP8024_Config_2_t config_2) {
