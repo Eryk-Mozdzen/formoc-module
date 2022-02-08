@@ -133,8 +133,9 @@ int main(void)
 
   while(1) {
 
-	  MCP8024_ReadAllRegisters(&mcp8024);
-	  HAL_Delay(1000);
+	  MCP8024_GetStatus(&mcp8024);
+	  MCP8024_GetConfig(&mcp8024);
+	  HAL_Delay(100);
 
 	  /*MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
 	  //MCP8024_SetFill(&mcp8024, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, 0, 0, 0);

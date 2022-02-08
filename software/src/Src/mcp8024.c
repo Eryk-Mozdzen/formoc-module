@@ -20,15 +20,44 @@ void MCP8024_Init(MCP8024_t *mcp8024, UART_HandleTypeDef *com_uart, TIM_HandleTy
 
 	HAL_GPIO_WritePin(CHIP_ENABLE_GPIO_Port, CHIP_ENABLE_Pin, GPIO_PIN_SET);
 	HAL_Delay(100);
+
+	// set configuration
+	MCP8024_Config(mcp8024);
 }
 
-void MCP8024_ReadAllRegisters(MCP8024_t *mcp8024) {
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_0, NULL, NULL, &mcp8024->registers.status_0);
-	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_1, NULL, NULL, &mcp8024->registers.status_1);
+void MCP8024_Config(MCP8024_t *mcp8024) {
+	MCP8024_Config_0_t config_0 = {0};
+	MCP8024_Config_1_t config_1 = {0};
+	MCP8024_Config_2_t config_2 = {0};
 
+	config_0.disable_30k_pullup = MCP8024_DISCONNECTION_OF_30K_LEVEL_TRANSLATOR_PULLUP_WHEN_CE_0_DISABLE;
+	config_0.undervoltage_lockout = MCP8024_UNDERVOLTAGE_LOCKOUT_ENABLED;
+	config_0.ext_mosfet_overcurrent_detection = MCP8024_EXT_MOSFET_OVERCURRENT_DETECTION_ENABLED;
+	config_0.ext_mosfet_overcurrent_limit = MCP8024_EXT_MOSFET_OVERCURRENT_LIMIT_0_250_V;
+
+	config_1.dac_current_reference = MCP8024_GET_DAC_CURRENT_REFERENCE_VALUE(1.88f);
+
+	config_2.driver_dead_time = MCP8024_DRIVER_DEAD_TIME_2_US;
+	config_2.driver_blanking_time = MCP8024_DRIVER_BLANKING_TIME_4_US;
+
+	MCP8024_SetConfig(mcp8024, config_0, config_1, config_2);
+}
+
+void MCP8024_GetStatus(MCP8024_t *mcp8024) {
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_0, NULL, NULL, (uint8_t *)&mcp8024->registers.status_0);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_STATUS_1, NULL, NULL, (uint8_t *)&mcp8024->registers.status_1);
+}
+
+void MCP8024_GetConfig(MCP8024_t *mcp8024) {
 	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_0, NULL, NULL, &mcp8024->registers.config_0);
 	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_1, NULL, NULL, &mcp8024->registers.config_1);
 	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_GET_CFG_2, NULL, NULL, &mcp8024->registers.config_2);
+}
+
+void MCP8024_SetConfig(MCP8024_t *mcp8024, MCP8024_Config_0_t config_0, MCP8024_Config_1_t config_1, MCP8024_Config_2_t config_2) {
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_SET_CFG_0, (uint8_t *)&config_0, NULL, NULL);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_SET_CFG_1, (uint8_t *)&config_1, NULL, NULL);
+	MCP8024_WriteCommand(mcp8024, MCP8024_CMD_SET_CFG_2, (uint8_t *)&config_2, NULL, NULL);
 }
 
 void MCP8024_RxCpltCallback(MCP8024_t *mcp8024) {
@@ -73,6 +102,7 @@ void MCP8024_WriteCommand(MCP8024_t *mcp8024, MCP8024_Command_t cmd, uint8_t *ar
 	if(response_data)
 		*response_data = rx_buffer.response.data;
 }
+
 
 void MCP8024_SetFill(MCP8024_t *mcp8024, uint16_t u_l, uint16_t v_l, uint16_t w_l, uint16_t u_h, uint16_t v_h, uint16_t w_h) {
 
