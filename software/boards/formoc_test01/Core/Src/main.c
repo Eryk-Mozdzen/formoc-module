@@ -91,9 +91,9 @@ const uint16_t h_phases[6][3] = {
 
 uint8_t curr_phase = 0;
 
+Motor_t motor;
 MCP8024_t mcp8024;
 PhaseCurrent_t phase_current;
-Motor_t motor;
 
 PID_StructTypeDef Id_controller;
 PID_StructTypeDef Iq_controller;
@@ -130,15 +130,17 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_DMA_Init();
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
-  MX_TIM3_Init();
-  MX_TIM2_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
   MX_TIM7_Init();
+  MX_TIM16_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -146,21 +148,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  HAL_TIM_Base_Start(&htim7);
-
   PID_Init(&Id_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
   PID_Init(&Iq_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
 
+  Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
-  Motor_Init(&motor, &htim3);
+
+  HAL_TIM_Base_Start(&htim7);
+  HAL_TIM_Base_Start_IT(&htim16);
+  HAL_TIM_Base_Start_IT(&htim17);
 
   while(1) {
-
-	  MCP8024_Config(&mcp8024);
-	  MCP8024_GetStatus(&mcp8024);
-	  MCP8024_GetConfig(&mcp8024);
-	  HAL_Delay(100);
+	  //MCP8024_GetStatus(&mcp8024);
+	  //HAL_Delay(100);
 
 		//float angle = Motor_GetElectricalPosition(&motor);
 		//Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
@@ -258,7 +259,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInit.AdcClockSelection = RCC_ADCCLKSOURCE_PLLSAI1;
   PeriphClkInit.PLLSAI1.PLLSAI1Source = RCC_PLLSOURCE_HSI;
   PeriphClkInit.PLLSAI1.PLLSAI1M = 1;
-  PeriphClkInit.PLLSAI1.PLLSAI1N = 8;
+  PeriphClkInit.PLLSAI1.PLLSAI1N = 10;
   PeriphClkInit.PLLSAI1.PLLSAI1P = RCC_PLLP_DIV7;
   PeriphClkInit.PLLSAI1.PLLSAI1Q = RCC_PLLQ_DIV2;
   PeriphClkInit.PLLSAI1.PLLSAI1R = RCC_PLLR_DIV2;
@@ -295,6 +296,23 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+
+	if(htim->Instance==TIM16) {
+		// 10 kHz
+		float angle = Motor_GetElectricalPosition(&motor);
+		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
+
+		Vector3f_t fill = FOC(current, angle, 5);
+
+		MCP8024_SetFill(&mcp8024, fill.x, fill.y, fill.z, 0, 0, 0);
+
+	} else if(htim->Instance==TIM17) {
+		// 10 Hz
+		MCP8024_GetStatus(&mcp8024);
+	}
 }
 
 /* USER CODE END 4 */
