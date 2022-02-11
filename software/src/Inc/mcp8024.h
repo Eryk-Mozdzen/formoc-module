@@ -10,7 +10,9 @@ typedef struct {
 	TIM_HandleTypeDef *l_mosfet_timer;
 
 	UART_HandleTypeDef *com_uart;
-	uint8_t com_flag;
+	MCP8024_Response_t com_data;
+	uint8_t com_data_ready;
+	uint8_t com_data_type;
 
 	union {
 		struct {
@@ -38,7 +40,7 @@ void MCP8024_GetConfig(MCP8024_t *);
 void MCP8024_SetConfig(MCP8024_t *, MCP8024_Config_0_t, MCP8024_Config_1_t, MCP8024_Config_2_t);
 
 void MCP8024_RxCpltCallback(MCP8024_t *);
-void MCP8024_WriteCommand(MCP8024_t *, MCP8024_Command_t, uint8_t *, uint8_t *, uint8_t *);
+void MCP8024_WriteCommand(MCP8024_t *, MCP8024_Command_t, uint8_t *);
 
 void MCP8024_SetFill(MCP8024_t *, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
 

@@ -94,4 +94,15 @@ typedef struct {
 	uint8_t not_used : 3;
 } MCP8024_Status_1_t;
 
+typedef union {
+	struct {
+		uint8_t echo;
+		MCP8024_Message_t response;
+	} single;
+	struct {
+		MCP8024_Message_t echo;
+		MCP8024_Message_t response;
+	} argument;
+} MCP8024_Response_t;
+
 #endif

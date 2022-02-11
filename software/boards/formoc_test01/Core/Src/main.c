@@ -131,11 +131,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_UART_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   MX_TIM2_Init();
-  MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_TIM1_Init();
@@ -161,6 +160,11 @@ int main(void)
 	  MCP8024_GetStatus(&mcp8024);
 	  MCP8024_GetConfig(&mcp8024);
 	  HAL_Delay(100);
+
+		//float angle = Motor_GetElectricalPosition(&motor);
+		//Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
+		//Vector3f_t fill = FOC(current, angle, 5);
+		//MCP8024_SetFill(&mcp8024, u_l, v_l, w_l, u_h, v_h, w_h)
 
 	  /*MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
 	  //MCP8024_SetFill(&mcp8024, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, 0, 0, 0);
@@ -289,14 +293,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	if(hadc->Instance==ADC1) {
-
-		float angle = Motor_GetElectricalPosition(&motor);
-		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
-		Vector3f_t fill = FOC(current, angle, 5);
-		//MCP8024_SetFill(&mcp8024, u_l, v_l, w_l, u_h, v_h, w_h)
-	}
-
 	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
 }
 
