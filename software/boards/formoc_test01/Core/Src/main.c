@@ -130,8 +130,8 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
   MX_DMA_Init();
+  MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   MX_TIM2_Init();
@@ -151,12 +151,13 @@ int main(void)
   PID_Init(&Id_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
   PID_Init(&Iq_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
 
-  MCP8024_Init(&mcp8024, &huart1, &htim2, &htim1);
+  MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
   Motor_Init(&motor, &htim3);
 
   while(1) {
 
+	  MCP8024_Config(&mcp8024);
 	  MCP8024_GetStatus(&mcp8024);
 	  MCP8024_GetConfig(&mcp8024);
 	  HAL_Delay(100);

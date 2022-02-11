@@ -15,39 +15,39 @@ typedef enum {
 } MCP8024_Command_t;
 
 typedef enum {
-	MCP8024_DISCONNECTION_OF_30K_LEVEL_TRANSLATOR_PULLUP_WHEN_CE_0_DISABLE = 0x00,
-	MCP8024_DISCONNECTION_OF_30K_LEVEL_TRANSLATOR_PULLUP_WHEN_CE_0_ENABLE = 0x01
+	MCP8024_CONFIG_DISCONNECTION_OF_30K_LEVEL_TRANSLATOR_PULLUP_WHEN_CE_0_DISABLE = 0x00,
+	MCP8024_CONFIG_DISCONNECTION_OF_30K_LEVEL_TRANSLATOR_PULLUP_WHEN_CE_0_ENABLE = 0x01
 } MCP8024_30K_Pullup_Disconnection_t;
 
 typedef enum {
-	MCP8024_UNDERVOLTAGE_LOCKOUT_ENABLED = 0x00,
-	MCP8024_UNDERVOLTAGE_LOCKOUT_DISABLED = 0x01
+	MCP8024_CONFIG_UNDERVOLTAGE_LOCKOUT_ENABLED = 0x00,
+	MCP8024_CONFIG_UNDERVOLTAGE_LOCKOUT_DISABLED = 0x01
 } MCP8024_Undervoltage_Lockout_t;
 
 typedef enum {
-	MCP8024_EXT_MOSFET_OVERCURRENT_DETECTION_ENABLED = 0x00,
-	MCP8024_EXT_MOSFET_OVERCURRENT_DETECTION_DISABLED = 0x01
+	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_DETECTION_ENABLED = 0x00,
+	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_DETECTION_DISABLED = 0x01
 } MCP8024_External_MOSFET_Overcurrent_Detection_t;
 
 typedef enum {
-	MCP8024_EXT_MOSFET_OVERCURRENT_LIMIT_0_250_V = 0x00,
-	MCP8024_EXT_MOSFET_OVERCURRENT_LIMIT_0_500_V = 0x01,
-	MCP8024_EXT_MOSFET_OVERCURRENT_LIMIT_0_750_V = 0x02,
-	MCP8024_EXT_MOSFET_OVERCURRENT_LIMIT_1_000_V = 0x03
+	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_LIMIT_0_250_V = 0x00,
+	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_LIMIT_0_500_V = 0x01,
+	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_LIMIT_0_750_V = 0x02,
+	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_LIMIT_1_000_V = 0x03
 } MCP8024_External_MOSFET_Overcurrent_Limit_t;
 
 typedef enum {
-	MCP8024_DRIVER_DEAD_TIME_2_US = 0x00,
-	MCP8024_DRIVER_DEAD_TIME_1_US = 0x01,
-	MCP8024_DRIVER_DEAD_TIME_500_NS = 0x02,
-	MCP8024_DRIVER_DEAD_TIME_250_NS = 0x03,
+	MCP8024_CONFIG_DRIVER_DEAD_TIME_2_US = 0x00,
+	MCP8024_CONFIG_DRIVER_DEAD_TIME_1_US = 0x01,
+	MCP8024_CONFIG_DRIVER_DEAD_TIME_500_NS = 0x02,
+	MCP8024_CONFIG_DRIVER_DEAD_TIME_250_NS = 0x03,
 } MCP8024_Driver_Dead_Time_t;
 
 typedef enum {
-	MCP8024_DRIVER_BLANKING_TIME_4_US = 0x00,
-	MCP8024_DRIVER_BLANKING_TIME_2_US = 0x01,
-	MCP8024_DRIVER_BLANKING_TIME_1_US = 0x02,
-	MCP8024_DRIVER_BLANKING_TIME_500_NS = 0x03,
+	MCP8024_CONFIG_DRIVER_BLANKING_TIME_4_US = 0x00,
+	MCP8024_CONFIG_DRIVER_BLANKING_TIME_2_US = 0x01,
+	MCP8024_CONFIG_DRIVER_BLANKING_TIME_1_US = 0x02,
+	MCP8024_CONFIG_DRIVER_BLANKING_TIME_500_NS = 0x03,
 } MCP8024_Driver_Blanking_Time_t;
 
 typedef struct {
@@ -56,12 +56,12 @@ typedef struct {
 } MCP8024_Message_t;
 
 typedef struct {
-	uint8_t ext_mosfet_overcurrent_limit : 2;
-	uint8_t ext_mosfet_overcurrent_detection : 1;
-	uint8_t undervoltage_lockout : 1;
+	MCP8024_External_MOSFET_Overcurrent_Limit_t ext_mosfet_overcurrent_limit : 2;
+	MCP8024_External_MOSFET_Overcurrent_Detection_t ext_mosfet_overcurrent_detection : 1;
+	MCP8024_Undervoltage_Lockout_t undervoltage_lockout : 1;
 	uint8_t reserved : 1;
 	uint8_t unused1 : 1;
-	uint8_t disable_30k_pullup : 1;
+	MCP8024_30K_Pullup_Disconnection_t disable_30k_pullup : 1;
 	uint8_t unused0 : 1;
 } MCP8024_Config_0_t;
 
@@ -70,8 +70,8 @@ typedef struct {
 } MCP8024_Config_1_t;
 
 typedef struct {
-	uint8_t driver_blanking_time : 2;
-	uint8_t driver_dead_time : 2;
+	MCP8024_Driver_Blanking_Time_t driver_blanking_time : 2;
+	MCP8024_Driver_Dead_Time_t driver_dead_time : 2;
 	uint8_t unused : 4;
 } MCP8024_Config_2_t;
 
@@ -93,16 +93,5 @@ typedef struct {
 	uint8_t brown_out_reset_config_lost : 1;
 	uint8_t not_used : 3;
 } MCP8024_Status_1_t;
-
-typedef union {
-	struct {
-		uint8_t echo;
-		MCP8024_Message_t response;
-	} single;
-	struct {
-		MCP8024_Message_t echo;
-		MCP8024_Message_t response;
-	} argument;
-} MCP8024_Response_t;
 
 #endif
