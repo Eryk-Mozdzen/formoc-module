@@ -14,26 +14,22 @@
 #define PHASE_CURRENT_GET_AMP_VOLTAGE(vol)		(((vol)-PHASE_CURRENT_AMP_OFFSET)/PHASE_CURRENT_AMP_GAIN)			// V
 #define PHASE_CURRENT_GET_SHUNT_CURRENT(vol)	((vol)/PHASE_CURRENT_SHUNT_RESISTANCE)								// A
 
-#define PHASE_CURRENT_CONVERSION_NUM	6
-
 typedef struct {
 	ADC_HandleTypeDef *b_phase_adc;
 	ADC_HandleTypeDef *c_phase_adc;
 
-	uint16_t b_phase_buffer_raw[PHASE_CURRENT_CONVERSION_NUM];
-	uint16_t c_phase_buffer_raw[PHASE_CURRENT_CONVERSION_NUM];
+	uint16_t b_phase_buffer;
+	uint16_t c_phase_buffer;
 
 	Vector3f_t voltage;
 	Vector3f_t current;
-
-	Vector3f_t avg_avg_voltage;
-	Vector3f_t peak_avg_voltage;
 
 	Vector3f_t peak_voltage;
 	Vector3f_t peak_current;
 } PhaseCurrent_t;
 
 void PhaseCurrent_Init(PhaseCurrent_t *, ADC_HandleTypeDef *, ADC_HandleTypeDef *);
+void PhaseCurrent_StartSample(PhaseCurrent_t *);
 
 void PhaseCurrent_ConvCpltCallback(PhaseCurrent_t *, ADC_HandleTypeDef *);
 Vector3f_t PhaseCurrent_GetCurrent(PhaseCurrent_t *);

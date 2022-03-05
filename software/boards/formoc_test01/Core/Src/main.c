@@ -163,7 +163,7 @@ int main(void)
 
   Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
-  //PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
+  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
   //HAL_TIM_Base_Start(&htim7);
   //HAL_TIM_Base_Start_IT(&htim16);
@@ -234,7 +234,7 @@ int main(void)
 		Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
 		Vector3f_t Vabc = space_vector_modulation(Vab0);
 
-		Vabc = (const Vector3f_t){0, 0, 0};
+		//Vabc = (const Vector3f_t){0, 0, 0};
 
 		fill_h.x = Vabc.x*PWM_MAX_FILL - PWM_DEAD_TIME;
 		fill_h.y = Vabc.y*PWM_MAX_FILL - PWM_DEAD_TIME;
@@ -371,6 +371,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
+
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -378,7 +380,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if(htim->Instance==TIM6) {
 		// pwm period complete
 
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+		PhaseCurrent_StartSample(&phase_current);
+
 	} else if(htim->Instance==TIM16) {
 		// 10 kHz
 		foc_flag = 1;
