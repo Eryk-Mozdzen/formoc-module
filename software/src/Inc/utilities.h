@@ -27,4 +27,8 @@ typedef struct {
 	uint16_t x, y, z;
 } Vector3uint16_t;
 
+typedef struct {
+	int16_t x, y, z;
+} Vector3int16_t;
+
 #endif

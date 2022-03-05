@@ -94,6 +94,8 @@ const uint16_t h_phases[6][3] = {
 int8_t curr_phase = 0;
 
 uint8_t foc_flag = 0;
+#define PWM_MAX_FILL	2000
+#define PWM_DEAD_TIME	20
 
 Motor_t motor;
 MCP8024_t mcp8024;
@@ -102,7 +104,8 @@ PhaseCurrent_t phase_current;
 PID_StructTypeDef Id_controller;
 PID_StructTypeDef Iq_controller;
 
-Vector3uint16_t fill;
+Vector3int16_t fill_h;
+Vector3int16_t fill_l;
 
 /* USER CODE END 0 */
 
@@ -163,7 +166,7 @@ int main(void)
 
   //HAL_TIM_Base_Start(&htim7);
   //HAL_TIM_Base_Start_IT(&htim16);
-  //HAL_TIM_Base_Start_IT(&htim17);
+  HAL_TIM_Base_Start_IT(&htim17);
 
   while(1) {
 
@@ -224,20 +227,26 @@ int main(void)
 		Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
 		Vector3f_t Vabc = space_vector_modulation(Vab0);
 
-		fill.x = Vabc.x*2000;
-		fill.y = Vabc.y*2000;
-		fill.z = Vabc.z*2000;
+		fill_h.x = Vabc.x*PWM_MAX_FILL - PWM_DEAD_TIME;
+		fill_h.y = Vabc.y*PWM_MAX_FILL - PWM_DEAD_TIME;
+		fill_h.z = Vabc.z*PWM_MAX_FILL - PWM_DEAD_TIME;
 
-		fill.x = MIN(MAX(fill.x, 40), 1960);
-		fill.y = MIN(MAX(fill.y, 40), 1960);
-		fill.z = MIN(MAX(fill.z, 40), 1960);
+		fill_l.x = Vabc.x*PWM_MAX_FILL;
+		fill_l.y = Vabc.y*PWM_MAX_FILL;
+		fill_l.z = Vabc.z*PWM_MAX_FILL;
 
-		const float dead_time_prc = 0.8f;
+		fill_h.x = MIN(MAX(fill_h.x, 40), 1960);
+		fill_h.y = MIN(MAX(fill_h.y, 40), 1960);
+		fill_h.z = MIN(MAX(fill_h.z, 40), 1960);
+
+		fill_l.x = MIN(MAX(fill_l.x, 40), 1960);
+		fill_l.y = MIN(MAX(fill_l.y, 40), 1960);
+		fill_l.z = MIN(MAX(fill_l.z, 40), 1960);
 
 		//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000);
 		MCP8024_SetFill(&mcp8024,
-				fill.x, fill.y, fill.z,
-				fill.x*dead_time_prc, fill.y*dead_time_prc, fill.z*dead_time_prc
+				fill_l.x, fill_l.y, fill_l.z,
+				fill_h.x, fill_h.y, fill_h.z
 		);
 		//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, 0, 0, 0);
 
@@ -359,8 +368,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		foc_flag = 1;
 
 	} else if(htim->Instance==TIM17) {
-		// 10 Hz
-		MCP8024_GetStatus(&mcp8024);
+		// 1 Hz
+
+		// MCP8024_GetStatus(&mcp8024);
 	}/* else if(htim->Instance==TIM2) {
 
 		// pwm period complete

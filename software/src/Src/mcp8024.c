@@ -39,8 +39,8 @@ void MCP8024_Config(MCP8024_t *mcp8024) {
 	MCP8024_Config_2_t config_2 = {0};
 
 	config_0.disable_30k_pullup = 				MCP8024_CONFIG_DISCONNECTION_OF_30K_LEVEL_TRANSLATOR_PULLUP_WHEN_CE_0_DISABLE;
-	config_0.undervoltage_lockout = 			MCP8024_CONFIG_UNDERVOLTAGE_LOCKOUT_ENABLED;
-	config_0.ext_mosfet_overcurrent_detection = MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_DETECTION_ENABLED;
+	config_0.undervoltage_lockout = 			MCP8024_CONFIG_UNDERVOLTAGE_LOCKOUT_DISABLED;
+	config_0.ext_mosfet_overcurrent_detection = MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_DETECTION_DISABLED;
 	config_0.ext_mosfet_overcurrent_limit = 	MCP8024_CONFIG_EXT_MOSFET_OVERCURRENT_LIMIT_0_250_V;
 
 	config_1.dac_current_reference = 			MCP8024_GET_DAC_CURRENT_REFERENCE_VALUE(1.88f);
