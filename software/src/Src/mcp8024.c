@@ -2,7 +2,10 @@
 
 static void __MCP8024_WriteRead(MCP8024_t *, uint8_t, uint8_t *);
 
-void MCP8024_Init(MCP8024_t *mcp8024, GPIO_TypeDef *ce_port, uint16_t ce_pin, UART_HandleTypeDef *com_uart, TIM_HandleTypeDef *mosfet_h_timer, TIM_HandleTypeDef *mosfet_l_timer) {
+void MCP8024_Init(MCP8024_t *mcp8024,
+		GPIO_TypeDef *ce_port, uint16_t ce_pin,
+		UART_HandleTypeDef *com_uart,
+		TIM_HandleTypeDef *mosfet_h_timer, TIM_HandleTypeDef *mosfet_l_timer) {
 
 	mcp8024->ce_port = ce_port;
 	mcp8024->ce_pin = ce_pin;

@@ -35,6 +35,7 @@ extern "C" {
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim16;
 extern TIM_HandleTypeDef htim17;
@@ -46,6 +47,7 @@ extern TIM_HandleTypeDef htim17;
 void MX_TIM1_Init(void);
 void MX_TIM2_Init(void);
 void MX_TIM3_Init(void);
+void MX_TIM6_Init(void);
 void MX_TIM7_Init(void);
 void MX_TIM16_Init(void);
 void MX_TIM17_Init(void);

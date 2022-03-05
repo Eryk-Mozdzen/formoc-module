@@ -95,7 +95,7 @@ int8_t curr_phase = 0;
 
 uint8_t foc_flag = 0;
 #define PWM_MAX_FILL	2000
-#define PWM_DEAD_TIME	20
+#define PWM_DEAD_TIME	0
 
 Motor_t motor;
 MCP8024_t mcp8024;
@@ -150,6 +150,7 @@ int main(void)
   MX_TIM7_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -167,6 +168,12 @@ int main(void)
   //HAL_TIM_Base_Start(&htim7);
   //HAL_TIM_Base_Start_IT(&htim16);
   HAL_TIM_Base_Start_IT(&htim17);
+
+  __HAL_TIM_SET_COUNTER(mcp8024.mosfet_l_timer, 0);
+  __HAL_TIM_SET_COUNTER(mcp8024.mosfet_h_timer, 0);
+  __HAL_TIM_SET_COUNTER(&htim6, 800);
+
+  HAL_TIM_Base_Start_IT(&htim6);
 
   while(1) {
 
@@ -227,6 +234,8 @@ int main(void)
 		Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
 		Vector3f_t Vabc = space_vector_modulation(Vab0);
 
+		Vabc = (const Vector3f_t){0, 0, 0};
+
 		fill_h.x = Vabc.x*PWM_MAX_FILL - PWM_DEAD_TIME;
 		fill_h.y = Vabc.y*PWM_MAX_FILL - PWM_DEAD_TIME;
 		fill_h.z = Vabc.z*PWM_MAX_FILL - PWM_DEAD_TIME;
@@ -235,13 +244,16 @@ int main(void)
 		fill_l.y = Vabc.y*PWM_MAX_FILL;
 		fill_l.z = Vabc.z*PWM_MAX_FILL;
 
-		fill_h.x = MIN(MAX(fill_h.x, 40), 1960);
-		fill_h.y = MIN(MAX(fill_h.y, 40), 1960);
-		fill_h.z = MIN(MAX(fill_h.z, 40), 1960);
+		const uint16_t pwm_min = PWM_MAX_FILL*0.1f;
+		const uint16_t pwm_max = PWM_MAX_FILL*0.90f;
 
-		fill_l.x = MIN(MAX(fill_l.x, 40), 1960);
-		fill_l.y = MIN(MAX(fill_l.y, 40), 1960);
-		fill_l.z = MIN(MAX(fill_l.z, 40), 1960);
+		fill_h.x = MIN(MAX(fill_h.x, pwm_min), pwm_max);
+		fill_h.y = MIN(MAX(fill_h.y, pwm_min), pwm_max);
+		fill_h.z = MIN(MAX(fill_h.z, pwm_min), pwm_max);
+
+		fill_l.x = MIN(MAX(fill_l.x, pwm_min), pwm_max);
+		fill_l.y = MIN(MAX(fill_l.y, pwm_min), pwm_max);
+		fill_l.z = MIN(MAX(fill_l.z, pwm_min), pwm_max);
 
 		//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000);
 		MCP8024_SetFill(&mcp8024,
@@ -363,7 +375,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if(htim->Instance==TIM16) {
+	if(htim->Instance==TIM6) {
+		// pwm period complete
+
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+	} else if(htim->Instance==TIM16) {
 		// 10 kHz
 		foc_flag = 1;
 
@@ -371,12 +387,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		// 1 Hz
 
 		// MCP8024_GetStatus(&mcp8024);
-	}/* else if(htim->Instance==TIM2) {
-
-		// pwm period complete
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
-	}*/
+	}
 }
+
+/*void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) {
+	if(htim->Instance==TIM1) {
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+	}
+
+}*/
 
 /* USER CODE END 4 */
 
