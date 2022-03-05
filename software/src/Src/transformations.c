@@ -7,7 +7,7 @@ float normalize_angle(float angle){
 
 Vector3f_t clark_transformation(Vector3f_t input) {
 	//power-invariant
- 	return (vector_3d) {
+ 	return (Vector3f_t) {
  		(2.0*input.x - input.y - input.z)*(_1_OVER_SQRT_6),
 		(input.y - input.z)*(_1_OVER_SQRT_2),
  		(input.x + input.y + input.z)*(_1_OVER_SQRT_3)

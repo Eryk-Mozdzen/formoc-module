@@ -102,6 +102,8 @@ PhaseCurrent_t phase_current;
 PID_StructTypeDef Id_controller;
 PID_StructTypeDef Iq_controller;
 
+Vector3uint16_t fill;
+
 /* USER CODE END 0 */
 
 /**
@@ -157,7 +159,7 @@ int main(void)
 
   Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
-  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
+  //PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
   //HAL_TIM_Base_Start(&htim7);
   //HAL_TIM_Base_Start_IT(&htim16);
@@ -165,7 +167,7 @@ int main(void)
 
   while(1) {
 
-	  MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
+	  /*MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
 	  //MCP8024_SetFill(&mcp8024, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, 0, 0, 0);
 	  HAL_Delay(1);
 
@@ -186,26 +188,62 @@ int main(void)
 		  phase_current.peak_current = (const Vector3f_t){0};
 		  phase_current.avg_avg_voltage = (const Vector3f_t){0};
 		  phase_current.peak_avg_voltage = (const Vector3f_t){0};
-	  }
+	  }*/
 
 	  //curr_phase++;
 	  //curr_phase %=6;
 
-	  PhaseCurrent_GetCurrent(&phase_current);
+	  //PhaseCurrent_GetCurrent(&phase_current);
 
-	  /*Motor_GetElectricalPosition(&motor);
+	  //Motor_GetElectricalPosition(&motor);
 
-		if(!foc_flag)
-			continue;
+		//if(!foc_flag)
+		//	continue;
 
 		float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
-		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
 
-		Vector3f_t fill = FOC(current, angle, 5);
+	  	//static float angle = 0;
+	  	//angle +=0.1;
 
-		MCP8024_SetFill(&mcp8024, fill.x, fill.y, fill.z, 0, 0, 0);
+		//Vector3f_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
+		//Vector3f_t Iabc = Vabc;
 
-		foc_flag = 0;*/
+		float theta = normalize_angle(angle);
+
+		//Vector3f_t Iab0 = clark_transformation(Iabc);
+		//Vector3f_t Idq0 = park_transformation(Iab0, theta);
+
+		/*Vector3f_t Vdq0 = {
+			PID_Update(&Id_controller, Idq0.x, 0),
+			PID_Update(&Iq_controller, Idq0.y, Iq_setpoint),
+			0
+		};*/
+
+		Vector3f_t Vdq0 = {2, 0, 0};
+
+		Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
+		Vector3f_t Vabc = space_vector_modulation(Vab0);
+
+		fill.x = Vabc.x*2000;
+		fill.y = Vabc.y*2000;
+		fill.z = Vabc.z*2000;
+
+		fill.x = MIN(MAX(fill.x, 40), 1960);
+		fill.y = MIN(MAX(fill.y, 40), 1960);
+		fill.z = MIN(MAX(fill.z, 40), 1960);
+
+		const float dead_time_prc = 0.8f;
+
+		//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000);
+		MCP8024_SetFill(&mcp8024,
+				fill.x, fill.y, fill.z,
+				fill.x*dead_time_prc, fill.y*dead_time_prc, fill.z*dead_time_prc
+		);
+		//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, 0, 0, 0);
+
+		//HAL_Delay(5);
+
+		//foc_flag = 0;
 
     /* USER CODE END WHILE */
 
@@ -323,7 +361,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	} else if(htim->Instance==TIM17) {
 		// 10 Hz
 		MCP8024_GetStatus(&mcp8024);
-	}
+	}/* else if(htim->Instance==TIM2) {
+
+		// pwm period complete
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+	}*/
 }
 
 /* USER CODE END 4 */

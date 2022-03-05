@@ -23,4 +23,8 @@ typedef struct {
 	float x, y, z;
 } Vector3f_t;
 
+typedef struct {
+	uint16_t x, y, z;
+} Vector3uint16_t;
+
 #endif

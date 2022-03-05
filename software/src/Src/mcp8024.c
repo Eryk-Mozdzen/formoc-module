@@ -21,6 +21,11 @@ void MCP8024_Init(MCP8024_t *mcp8024, GPIO_TypeDef *ce_port, uint16_t ce_pin, UA
 	HAL_TIM_PWM_Start(mcp8024->mosfet_l_timer, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(mcp8024->mosfet_l_timer, TIM_CHANNEL_3);
 
+	MCP8024_SetFill(mcp8024, 0, 0, 0, 0, 0, 0);
+
+	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_l_timer, 0);
+	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_h_timer, 0);
+
 	HAL_GPIO_WritePin(mcp8024->ce_port, mcp8024->ce_pin, GPIO_PIN_SET);
 	//HAL_Delay(100);
 
