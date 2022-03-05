@@ -7,18 +7,18 @@ float normalize_angle(float angle){
 
 Vector3f_t clark_transformation(Vector3f_t input) {
 	//power-invariant
-// 	return (vector_3d) {
-// 		(2.0*input.x - input.y - input.z)*(_1_OVER_SQRT_6),
-// 		(input.y - input.z)*(_1_OVER_SQRT_2),
-// 		(input.x + input.y + input.z)*(_1_OVER_SQRT_3)
-// 	};
+ 	return (vector_3d) {
+ 		(2.0*input.x - input.y - input.z)*(_1_OVER_SQRT_6),
+		(input.y - input.z)*(_1_OVER_SQRT_2),
+ 		(input.x + input.y + input.z)*(_1_OVER_SQRT_3)
+ 	};
 	
 	//power-variant
-	return (Vector3f_t) {
+	/*return (Vector3f_t) {
 		(2.f*input.x - input.y - input.z)*(0.3333f),
 		(input.y - input.z)*(_1_OVER_SQRT_3),
 		(input.x + input.y + input.z)*(SQRT_2_OVER_3)
-	};
+	};*/
 }
 
 Vector3f_t inverse_clark_transformation(Vector3f_t input) {

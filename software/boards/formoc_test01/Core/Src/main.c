@@ -62,6 +62,8 @@ void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 
+Vector3f_t FOC(Vector3f_t, float, float);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -89,7 +91,9 @@ const uint16_t h_phases[6][3] = {
 	{POWER,	0, 		0}
 };
 
-uint8_t curr_phase = 0;
+int8_t curr_phase = 0;
+
+uint8_t foc_flag = 0;
 
 Motor_t motor;
 MCP8024_t mcp8024;
@@ -148,27 +152,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  PID_Init(&Id_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
-  PID_Init(&Iq_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
+  //PID_Init(&Id_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
+  //PID_Init(&Iq_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
 
   Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
-  HAL_TIM_Base_Start(&htim7);
-  HAL_TIM_Base_Start_IT(&htim16);
-  HAL_TIM_Base_Start_IT(&htim17);
+  //HAL_TIM_Base_Start(&htim7);
+  //HAL_TIM_Base_Start_IT(&htim16);
+  //HAL_TIM_Base_Start_IT(&htim17);
 
   while(1) {
-	  //MCP8024_GetStatus(&mcp8024);
-	  //HAL_Delay(100);
 
-		//float angle = Motor_GetElectricalPosition(&motor);
-		//Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
-		//Vector3f_t fill = FOC(current, angle, 5);
-		//MCP8024_SetFill(&mcp8024, u_l, v_l, w_l, u_h, v_h, w_h)
-
-	  /*MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
+	  MCP8024_SetFill(&mcp8024, POWER, POWER, POWER, 0, 0, 0);
 	  //MCP8024_SetFill(&mcp8024, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, MCP8024_PWM_COMPARE_MAX, 0, 0, 0);
 	  HAL_Delay(1);
 
@@ -182,14 +179,33 @@ int main(void)
 	  );
 	  HAL_Delay(SPEED);
 
-	  uint16_t encoder_pos = __HAL_TIM_GET_COUNTER(mcp8024.encoder_timer);
-	  uint16_t angle = encoder_pos*360.f/512.f;
+	  curr_phase = floor(Motor_GetElectricalPosition(&motor)*6);
 
-	  angle *=6;
+	  if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)) {
+		  phase_current.peak_voltage = (const Vector3f_t){0};
+		  phase_current.peak_current = (const Vector3f_t){0};
+		  phase_current.avg_avg_voltage = (const Vector3f_t){0};
+		  phase_current.peak_avg_voltage = (const Vector3f_t){0};
+	  }
 
-	  //curr_phase = angle/60 + OFFSET;
-	  curr_phase++;
-	  curr_phase %=6;*/
+	  //curr_phase++;
+	  //curr_phase %=6;
+
+	  PhaseCurrent_GetCurrent(&phase_current);
+
+	  /*Motor_GetElectricalPosition(&motor);
+
+		if(!foc_flag)
+			continue;
+
+		float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
+		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
+
+		Vector3f_t fill = FOC(current, angle, 5);
+
+		MCP8024_SetFill(&mcp8024, fill.x, fill.y, fill.z, 0, 0, 0);
+
+		foc_flag = 0;*/
 
     /* USER CODE END WHILE */
 
@@ -302,12 +318,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 	if(htim->Instance==TIM16) {
 		// 10 kHz
-		float angle = Motor_GetElectricalPosition(&motor);
-		Vector3f_t current = PhaseCurrent_GetCurrent(&phase_current);
-
-		Vector3f_t fill = FOC(current, angle, 5);
-
-		MCP8024_SetFill(&mcp8024, fill.x, fill.y, fill.z, 0, 0, 0);
+		foc_flag = 1;
 
 	} else if(htim->Instance==TIM17) {
 		// 10 Hz

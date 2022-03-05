@@ -9,12 +9,16 @@ void Motor_Init(Motor_t *motor, TIM_HandleTypeDef *encoder_timer) {
 }
 
 float Motor_GetMechanicalPosition(Motor_t *motor) {
-	uint16_t encoder = __HAL_TIM_GET_COUNTER(motor->encoder_timer);
-	float mech = encoder/MOTOR_ENCODER_CPR;
+	float encoder = __HAL_TIM_GET_COUNTER(motor->encoder_timer);
+	motor->mechanical_pos = encoder/MOTOR_ENCODER_CPR;
 
-	return mech;
+	return motor->mechanical_pos;
 }
 
 float Motor_GetElectricalPosition(Motor_t *motor) {
-	return Motor_GetMechanicalPosition(motor)/MOTOR_POLE_PAIRS;
+	float elec = Motor_GetMechanicalPosition(motor)*MOTOR_POLE_PAIRS;
+
+	motor->electrical_pos = fmodf(elec, 1.f);
+
+	return motor->electrical_pos;
 }
