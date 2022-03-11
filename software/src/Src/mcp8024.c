@@ -24,7 +24,7 @@ void MCP8024_Init(MCP8024_t *mcp8024,
 	HAL_TIM_PWM_Start(mcp8024->mosfet_l_timer, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(mcp8024->mosfet_l_timer, TIM_CHANNEL_3);
 
-	MCP8024_SetFill(mcp8024, 0, 0, 0, 0, 0, 0);
+	MCP8024_SetCompare(mcp8024, 0, 0, 0, 0, 0, 0);
 
 	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_l_timer, 0);
 	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_h_timer, 0);
@@ -114,15 +114,40 @@ void __MCP8024_WriteRead(MCP8024_t *mcp8024, uint8_t cmd, uint8_t *argument) {
 
 
 
-void MCP8024_SetFill(MCP8024_t *mcp8024, uint16_t u_l, uint16_t v_l, uint16_t w_l, uint16_t u_h, uint16_t v_h, uint16_t w_h) {
+void MCP8024_SetCompare(MCP8024_t *mcp8024, uint16_t fill_l_x, uint16_t fill_l_y, uint16_t fill_l_z, uint16_t fill_h_x, uint16_t fill_h_y, uint16_t fill_h_z) {
 
-	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_1, u_h);
-	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_2, v_h);
-	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_3, w_h);
+	const int16_t pwm_min = MCP8024_PWM_MAX_FILL*0.1f;
+	const int16_t pwm_max = MCP8024_PWM_MAX_FILL*0.90f;
 
-	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_1, u_l);
-	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_2, v_l);
-	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_3, w_l);
+	mcp8024->fill_h.x = MIN(MAX(fill_h_x, pwm_min), pwm_max);
+	mcp8024->fill_h.y = MIN(MAX(fill_h_y, pwm_min), pwm_max);
+	mcp8024->fill_h.z = MIN(MAX(fill_h_z, pwm_min), pwm_max);
+
+	mcp8024->fill_l.x = MIN(MAX(fill_l_x, pwm_min), pwm_max);
+	mcp8024->fill_l.y = MIN(MAX(fill_l_y, pwm_min), pwm_max);
+	mcp8024->fill_l.z = MIN(MAX(fill_l_z, pwm_min), pwm_max);
+
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_1, mcp8024->fill_h.x);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_2, mcp8024->fill_h.y);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_3, mcp8024->fill_h.z);
+
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_1, mcp8024->fill_l.x);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_2, mcp8024->fill_l.y);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_3, mcp8024->fill_l.z);
+}
+
+void MCP8024_SetFill(MCP8024_t *mcp8024, Vector3f_t fill) {
+	mcp8024->fill = fill;
+
+	mcp8024->fill_h.x = mcp8024->fill.x*MCP8024_PWM_MAX_FILL - MCP8024_PWM_DEAD_TIME;
+	mcp8024->fill_h.y = mcp8024->fill.y*MCP8024_PWM_MAX_FILL - MCP8024_PWM_DEAD_TIME;
+	mcp8024->fill_h.z = mcp8024->fill.z*MCP8024_PWM_MAX_FILL - MCP8024_PWM_DEAD_TIME;
+
+	mcp8024->fill_l.x = mcp8024->fill.x*MCP8024_PWM_MAX_FILL;
+	mcp8024->fill_l.y = mcp8024->fill.y*MCP8024_PWM_MAX_FILL;
+	mcp8024->fill_l.z = mcp8024->fill.z*MCP8024_PWM_MAX_FILL;
+
+	MCP8024_SetCompare(mcp8024, mcp8024->fill_l.x, mcp8024->fill_l.y, mcp8024->fill_l.z, mcp8024->fill_h.x, mcp8024->fill_h.y, mcp8024->fill_h.z);
 }
 
 
