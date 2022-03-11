@@ -276,35 +276,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 
 	if(hadc->Instance==phase_current.a_phase_adc->Instance) {
 		phase_current.ready |=0x01;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
 	} else if(hadc->Instance==phase_current.b_phase_adc->Instance) {
 		phase_current.ready |=0x02;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
 	} else {
 		phase_current.ready |=0x04;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
-
-		GPIOC->BSRR = GPIO_PIN_6;
-		GPIOC->BRR = GPIO_PIN_6;
 	}
+
+	GPIOC->BSRR = GPIO_PIN_6;
+	GPIOC->BRR = GPIO_PIN_6;
 
 }
 
