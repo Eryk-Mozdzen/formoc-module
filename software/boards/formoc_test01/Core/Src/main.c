@@ -121,6 +121,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
+  MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -128,12 +129,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  PID_Init(&Id_controller, 0.2f, 0.01f, 0.f, 1.f, 1.f);
-  PID_Init(&Iq_controller, 0.6f, 0.1f, 0.1f, 5.f, 1.f);
+  PID_Init(&Id_controller, 0.4f, 0.3f, 0.f, 2.f, 1.f);
+  PID_Init(&Iq_controller, 0.7f, 0.2f, 0.3f, 5.f, 1.f);
 
-  Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
+
+  MCP8024_SetFill(&mcp8024, (Vector3f_t){.3f, 0.f, 0.f});
+  HAL_Delay(200);
+  Motor_Init(&motor, &htim3, 0.0775f);
+
+  __HAL_TIM_SET_COUNTER(mcp8024.mosfet_l_timer, 0);
+  __HAL_TIM_SET_COUNTER(mcp8024.mosfet_h_timer, 0);
+  __HAL_TIM_SET_COUNTER(&htim15, 2400);
+  HAL_TIM_Base_Start(&htim15);
 
   HAL_TIM_Base_Start_IT(&htim16);
   //HAL_TIM_Base_Start_IT(&htim17);
@@ -152,31 +161,22 @@ int main(void)
 		  MCP8024_GetStatus(&mcp8024);
 	  }*/
 
-	  if(PhaseCurrent_IsReady(&phase_current))
-		  PhaseCurrent_GetCurrent(&phase_current);
-
 	  if(flags.foc_loop) {
 		  flags.foc_loop = 0;
 
 		  float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
 		  float theta = normalize_angle(angle);
 
-		Vector3f_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
+		  Vector3f_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
 
-		Vector3f_t Iab0 = clark_transformation(Iabc);
-		Vector3f_t Idq0 = park_transformation(Iab0, theta);
+		  Vector3f_t Iab0 = clark_transformation(Iabc);
+		  Vector3f_t Idq0 = park_transformation(Iab0, theta);
 
-		/*Vector3f_t Vdq0 = {
-			PID_Update(&Id_controller, Idq0.x, 0),
-			PID_Update(&Iq_controller, Idq0.y, Iq_setpoint),
-			0
-		};*/
-
-		Vector3f_t Vdq0 = {
-			PID_Update(&Id_controller, Idq0.x, 0),
-			PID_Update(&Iq_controller, Idq0.y, 3.f),
-			0
-		};
+		  Vector3f_t Vdq0 = {
+				  PID_Update(&Id_controller, Idq0.x, 0),
+				  PID_Update(&Iq_controller, Idq0.y, 3.f),
+				  0
+		  };
 
 		  //Vector3f_t Vdq0 = {2, 0, 0};
 
@@ -289,7 +289,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 	if(htim->Instance==TIM16) {
-		// 5 kHz
+		// 20 kHz
 		flags.foc_loop = 1;
 	} else if(htim->Instance==TIM17) {
 		// 1 Hz

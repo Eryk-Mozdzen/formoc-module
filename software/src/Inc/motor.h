@@ -9,12 +9,13 @@
 
 typedef struct {
 	TIM_HandleTypeDef *encoder_timer;
+	float mechanical_offset;
 
 	float electrical_pos;
 	float mechanical_pos;
 } Motor_t;
 
-void Motor_Init(Motor_t *, TIM_HandleTypeDef *);
+void Motor_Init(Motor_t *, TIM_HandleTypeDef *, float);
 
 float Motor_GetMechanicalPosition(Motor_t *);
 float Motor_GetElectricalPosition(Motor_t *);
