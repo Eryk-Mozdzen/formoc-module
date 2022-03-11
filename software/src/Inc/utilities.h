@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 
-#define MIN(a, b) (a<b) ? a : b
-#define MAX(a, b) (a>b) ? a : b
+#define MIN(a, b) ((a<b) ? a : b)
+#define MAX(a, b) ((a>b) ? a : b)
 
-#define MIN_3(a, b, c) MIN(MIN(a, b), c)
-#define MAX_3(a, b, c) MAX(MAX(a, b), c)
+#define MIN_3(a, b, c) (MIN(MIN(a, b), c))
+#define MAX_3(a, b, c) (MAX(MAX(a, b), c))
 
 #define PI					3.1415926f
 #define SQRT_2				1.4142135f

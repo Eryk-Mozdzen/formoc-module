@@ -150,7 +150,7 @@ int main(void)
   MX_TIM7_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
-  MX_TIM6_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -163,17 +163,42 @@ int main(void)
 
   Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
-  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
+  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2, &hadc3);
 
   //HAL_TIM_Base_Start(&htim7);
   //HAL_TIM_Base_Start_IT(&htim16);
   HAL_TIM_Base_Start_IT(&htim17);
 
-  __HAL_TIM_SET_COUNTER(mcp8024.mosfet_l_timer, 0);
-  __HAL_TIM_SET_COUNTER(mcp8024.mosfet_h_timer, 0);
-  __HAL_TIM_SET_COUNTER(&htim6, 800);
+  //HAL_TIM_Base_Start_IT(&htim15);
+  PhaseCurrent_StartSample(&phase_current);
+  HAL_TIM_Base_Start(mcp8024.mosfet_l_timer);
 
-  HAL_TIM_Base_Start_IT(&htim6);
+  Vector3f_t Vabc = (const Vector3f_t){0.5f, 0.5f, 0.5f};
+
+  fill_h.x = Vabc.x*PWM_MAX_FILL - PWM_DEAD_TIME;
+  fill_h.y = Vabc.y*PWM_MAX_FILL - PWM_DEAD_TIME;
+	fill_h.z = Vabc.z*PWM_MAX_FILL - PWM_DEAD_TIME;
+
+	fill_l.x = Vabc.x*PWM_MAX_FILL;
+	fill_l.y = Vabc.y*PWM_MAX_FILL;
+	fill_l.z = Vabc.z*PWM_MAX_FILL;
+
+	const int16_t pwm_min = PWM_MAX_FILL*0.1f;
+	const int16_t pwm_max = PWM_MAX_FILL*0.90f;
+
+	fill_h.x = MIN(MAX(fill_h.x, pwm_min), pwm_max);
+	fill_h.y = MIN(MAX(fill_h.y, pwm_min), pwm_max);
+	fill_h.z = MIN(MAX(fill_h.z, pwm_min), pwm_max);
+
+	fill_l.x = MIN(MAX(fill_l.x, pwm_min), pwm_max);
+	fill_l.y = MIN(MAX(fill_l.y, pwm_min), pwm_max);
+	fill_l.z = MIN(MAX(fill_l.z, pwm_min), pwm_max);
+
+	//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000);
+	MCP8024_SetFill(&mcp8024,
+			fill_l.x, fill_l.y, fill_l.z,
+			fill_h.x, fill_h.y, fill_h.z
+	);
 
   while(1) {
 
@@ -210,7 +235,11 @@ int main(void)
 		//if(!foc_flag)
 		//	continue;
 
-		float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
+	  GPIOC->BSRR = GPIO_PIN_6;
+	  GPIOC->BRR = GPIO_PIN_6;
+
+
+		/*float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
 
 	  	//static float angle = 0;
 	  	//angle +=0.1;
@@ -229,12 +258,12 @@ int main(void)
 			0
 		};*/
 
-		Vector3f_t Vdq0 = {2, 0, 0};
+		/*Vector3f_t Vdq0 = {2.5, 0, 0};
 
 		Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
-		Vector3f_t Vabc = space_vector_modulation(Vab0);
+		Vector3f_t Vabc = space_vector_modulation(Vab0);*/
 
-		//Vabc = (const Vector3f_t){0, 0, 0};
+	  	  /*Vector3f_t Vabc = (const Vector3f_t){0.5f, 0.5f, 0.5f};
 
 		fill_h.x = Vabc.x*PWM_MAX_FILL - PWM_DEAD_TIME;
 		fill_h.y = Vabc.y*PWM_MAX_FILL - PWM_DEAD_TIME;
@@ -244,8 +273,8 @@ int main(void)
 		fill_l.y = Vabc.y*PWM_MAX_FILL;
 		fill_l.z = Vabc.z*PWM_MAX_FILL;
 
-		const uint16_t pwm_min = PWM_MAX_FILL*0.1f;
-		const uint16_t pwm_max = PWM_MAX_FILL*0.90f;
+		const int16_t pwm_min = PWM_MAX_FILL*0.1f;
+		const int16_t pwm_max = PWM_MAX_FILL*0.90f;
 
 		fill_h.x = MIN(MAX(fill_h.x, pwm_min), pwm_max);
 		fill_h.y = MIN(MAX(fill_h.y, pwm_min), pwm_max);
@@ -259,7 +288,7 @@ int main(void)
 		MCP8024_SetFill(&mcp8024,
 				fill_l.x, fill_l.y, fill_l.z,
 				fill_h.x, fill_h.y, fill_h.z
-		);
+		);*/
 		//MCP8024_SetFill(&mcp8024, Vabc.x*4000, Vabc.y*4000, Vabc.z*4000, 0, 0, 0);
 
 		//HAL_Delay(5);
@@ -370,20 +399,68 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
+	//PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
 
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+
+	//PhaseCurrent_StartSample(&phase_current);
+
+	//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_6);
+
+	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
+
+	if(hadc->Instance==phase_current.a_phase_adc->Instance) {
+		phase_current.ready |=0x01;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+	} else if(hadc->Instance==phase_current.b_phase_adc->Instance) {
+		phase_current.ready |=0x02;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+	} else {
+		phase_current.ready |=0x04;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+	}
+	/*if(phase_current.ready==0x07) {
+		GPIOC->BSRR = GPIO_PIN_6;
+		GPIOC->BRR = GPIO_PIN_6;
+
+		phase_current.ready = 0x00;
+	}*/
+
+	//GPIOC->BSRR = GPIO_PIN_6;
+	//GPIOC->BRR = GPIO_PIN_6;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	if(htim->Instance==TIM6) {
+	/*if(htim->Instance==TIM15) {
 		// pwm period complete
 
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
-		PhaseCurrent_StartSample(&phase_current);
+		//HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);
+		//PhaseCurrent_StartSample(&phase_current);
 
-	} else if(htim->Instance==TIM16) {
+	} else*/ if(htim->Instance==TIM16) {
 		// 10 kHz
 		foc_flag = 1;
 
