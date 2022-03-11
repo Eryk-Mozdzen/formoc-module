@@ -129,8 +129,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  PID_Init(&Id_controller, 0.4f, 0.3f, 0.f, 2.f, 1.f);
-  PID_Init(&Iq_controller, 0.7f, 0.2f, 0.3f, 5.f, 1.f);
+  PID_Init(&Id_controller, 0.5f, 0.6f, 0.f, 1.f, 1.f);
+  PID_Init(&Iq_controller, 0.75f, 0.45f, 0.f, 5.f, 1.f);
 
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
@@ -152,8 +152,8 @@ int main(void)
 	  //GPIOC->BSRR = GPIO_PIN_6;
 	  //GPIOC->BRR = GPIO_PIN_6;
 
-	  //if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
-	//	  PhaseCurrent_Reset(&phase_current);
+	  if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
+		  PhaseCurrent_Reset(&phase_current);
 
 	  /*if(flags.mcp8024_status) {
 		  flags.mcp8024_status = 0;
@@ -162,6 +162,7 @@ int main(void)
 	  }*/
 
 	  if(flags.foc_loop) {
+	  //if(PhaseCurrent_IsReady(&phase_current)) {
 		  flags.foc_loop = 0;
 
 		  float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
@@ -186,6 +187,11 @@ int main(void)
 
 		  Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
 		  Vector3f_t Vabc = space_vector_modulation(Vab0);
+
+		  /*Vector3f_t Vabc = inverse_clark_transformation(Vab0);
+		  Vabc.x = (1.f - Vabc.x)*0.5f;
+		  Vabc.y = (1.f - Vabc.y)*0.5f;
+		  Vabc.z = (1.f - Vabc.z)*0.5f;*/
 
 		  //Vabc = (const Vector3f_t){0.f, 0.f, 0.f};
 
