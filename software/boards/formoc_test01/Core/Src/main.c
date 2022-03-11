@@ -121,7 +121,6 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
-  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -129,34 +128,32 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  //PID_Init(&Id_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
-  //PID_Init(&Iq_controller, 100, 0, 0, 1, &htim7, 0.000001f);	//?
+  PID_Init(&Id_controller, 0.2f, 0.01f, 0.f, 1.f, 1.f);
+  PID_Init(&Iq_controller, 0.6f, 0.1f, 0.1f, 5.f, 1.f);
 
   Motor_Init(&motor, &htim3);
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
-  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2, &hadc3);
+  PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
-  //HAL_TIM_Base_Start_IT(&htim16);
+  HAL_TIM_Base_Start_IT(&htim16);
   //HAL_TIM_Base_Start_IT(&htim17);
-
-  PhaseCurrent_StartSample(&phase_current);
-  HAL_TIM_Base_Start(mcp8024.mosfet_l_timer);
 
   while(1) {
 
-	  /*if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)) {
-		  phase_current.peak_voltage = (const Vector3f_t){0};
-		  phase_current.peak_current = (const Vector3f_t){0};
-	  }*/
+	  //GPIOC->BSRR = GPIO_PIN_6;
+	  //GPIOC->BRR = GPIO_PIN_6;
 
-	  GPIOC->BSRR = GPIO_PIN_6;
-	  GPIOC->BRR = GPIO_PIN_6;
+	  //if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
+	//	  PhaseCurrent_Reset(&phase_current);
 
-	  if(flags.mcp8024_status) {
+	  /*if(flags.mcp8024_status) {
 		  flags.mcp8024_status = 0;
 
 		  MCP8024_GetStatus(&mcp8024);
-	  }
+	  }*/
+
+	  if(PhaseCurrent_IsReady(&phase_current))
+		  PhaseCurrent_GetCurrent(&phase_current);
 
 	  if(flags.foc_loop) {
 		  flags.foc_loop = 0;
@@ -164,18 +161,28 @@ int main(void)
 		  float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
 		  float theta = normalize_angle(angle);
 
-		/*Vector3f_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
+		Vector3f_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
 
 		Vector3f_t Iab0 = clark_transformation(Iabc);
 		Vector3f_t Idq0 = park_transformation(Iab0, theta);
 
-		Vector3f_t Vdq0 = {
+		/*Vector3f_t Vdq0 = {
 			PID_Update(&Id_controller, Idq0.x, 0),
 			PID_Update(&Iq_controller, Idq0.y, Iq_setpoint),
 			0
 		};*/
 
-		  Vector3f_t Vdq0 = {2, 0, 0};
+		Vector3f_t Vdq0 = {
+			PID_Update(&Id_controller, Idq0.x, 0),
+			PID_Update(&Iq_controller, Idq0.y, 3.f),
+			0
+		};
+
+		  //Vector3f_t Vdq0 = {2, 0, 0};
+
+		  Vdq0.x = (1.f - Vdq0.x)*0.5f;
+		  Vdq0.y = (1.f - Vdq0.y)*0.5f;
+		  Vdq0.z = (1.f - Vdq0.z)*0.5f;
 
 		  Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
 		  Vector3f_t Vabc = space_vector_modulation(Vab0);
@@ -272,15 +279,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	//PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
-
-	if(hadc->Instance==phase_current.a_phase_adc->Instance) {
-		phase_current.ready |=0x01;
-	} else if(hadc->Instance==phase_current.b_phase_adc->Instance) {
-		phase_current.ready |=0x02;
-	} else {
-		phase_current.ready |=0x04;
-	}
+	PhaseCurrent_ConvCpltCallback(&phase_current, hadc);
 
 	GPIOC->BSRR = GPIO_PIN_6;
 	GPIOC->BRR = GPIO_PIN_6;

@@ -117,7 +117,7 @@ void __MCP8024_WriteRead(MCP8024_t *mcp8024, uint8_t cmd, uint8_t *argument) {
 void MCP8024_SetCompare(MCP8024_t *mcp8024, uint16_t fill_l_x, uint16_t fill_l_y, uint16_t fill_l_z, uint16_t fill_h_x, uint16_t fill_h_y, uint16_t fill_h_z) {
 
 	const int16_t pwm_min = MCP8024_PWM_MAX_FILL*0.1f;
-	const int16_t pwm_max = MCP8024_PWM_MAX_FILL*0.90f;
+	const int16_t pwm_max = MCP8024_PWM_MAX_FILL*0.9f;
 
 	mcp8024->fill_h.x = MIN(MAX(fill_h_x, pwm_min), pwm_max);
 	mcp8024->fill_h.y = MIN(MAX(fill_h_y, pwm_min), pwm_max);

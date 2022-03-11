@@ -34,7 +34,6 @@ extern "C" {
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
-extern ADC_HandleTypeDef hadc3;
 
 /* USER CODE BEGIN Private defines */
 
@@ -42,7 +41,6 @@ extern ADC_HandleTypeDef hadc3;
 
 void MX_ADC1_Init(void);
 void MX_ADC2_Init(void);
-void MX_ADC3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
