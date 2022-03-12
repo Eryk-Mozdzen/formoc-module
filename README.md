@@ -18,17 +18,17 @@ struct {
 
 | Field                 | Code  | R/W    | Type          | Unit      | Details |
 | -----                 | ----  | ---    | ----          | ----      | ------- |
-| error flags           | 0x00  | r/w    | `uint8_t`     |
-|
-| hardware config          | 0x0A  | r/w    | `uint8_t` <br> `uint16_t` <br> `uint16_t` | <br> count <br> count         | motor pole pairs <br> encoder CPR <br> encoder offset
-| control mode          | 0x0B | r/w    | `uint8_t`     |           |
-|
-| torque setpoint       | 0x10 | w      | `float32_t`   | Nm        |
-| velocity setpoint     | 0x11 | w      | `float32_t`   | rps       |
-|
+| error flags           | 0x00  | r/w    | `uint8_t`     |           |         |
+|||||||
+| hardware config          | 0x0A  | r/w    | `uint8_t` <br> `uint16_t` <br> `uint16_t` | <br> count <br> count         | motor pole pairs <br> encoder CPR <br> encoder offset  |
+| control mode          | 0x0B | r/w    | `uint8_t`     |           |           |
+|||||||
+| torque setpoint       | 0x10 | w      | `float32_t`   | Nm        |           |
+| velocity setpoint     | 0x11 | w      | `float32_t`   | rps       |           |
+|||||||
 | rotor position        | 0x20 | r      | `uint16_t`    | count     | in range [0; encoder_CPR)
-| rotor velocity        | 0x21 | r      | `float32_t`   | rps       |
-| power supply voltage  | 0x23  | r     | `uint16_t`    | mV        |
+| rotor velocity        | 0x21 | r      | `float32_t`   | rps       |           |
+| power supply voltage  | 0x23  | r     | `uint16_t`    | mV        |           |
 
 # TODO
 - improve code organization
