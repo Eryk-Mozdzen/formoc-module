@@ -18,17 +18,20 @@ struct {
 
 | Field                 | Code  | R/W    | Type          | Unit      | Details |
 | -----                 | ----  | ---    | ----          | ----      | ------- |
-| error flags           | 0x00  | r/w    | `uint8_t`     |           |         |
+| status                | 0x00  | r/w    | `uint8_t`     |           | bit 0 - MCP8024 error flag <br>bit 1 - read/write access error flag <br>  bit 2 - write timeout flag <br> bit 3 - write wrong param flag <br> bit 4-7 (unused)        |
+| control               | 0x01  | r/w    | `uint8_t`     |           | bit 0 - reset <br> bit 1 - torque/velocity control <br>  bit 2-7 (unused)         |
 |||||||
 | hardware config          | 0x0A  | r/w    | `uint8_t` <br> `uint16_t` <br> `uint16_t` | <br> count <br> count         | motor pole pairs <br> encoder CPR <br> encoder offset  |
-| control mode          | 0x0B | r/w    | `uint8_t`     |           |           |
+| Id controller config          | 0x0B  | r/w    | `float32_t` <br> `float32_t` <br> `float32_t` ||  Kp <br> Ki <br> Kd |
+| Iq controller config          | 0x0C  | r/w    | `float32_t` <br> `float32_t` <br> `float32_t` ||  Kp <br> Ki <br> Kd |
+| velocity controller config          | 0x0D  | r/w    | `float32_t` <br> `float32_t` <br> `float32_t` ||  Kp <br> Ki <br> Kd |
 |||||||
 | torque setpoint       | 0x10 | w      | `float32_t`   | Nm        |           |
 | velocity setpoint     | 0x11 | w      | `float32_t`   | rps       |           |
 |||||||
-| rotor position        | 0x20 | r      | `uint16_t`    | count     | in range [0; encoder_CPR)
+| rotor position        | 0x20 | r      | `int32_t`    | count     |
 | rotor velocity        | 0x21 | r      | `float32_t`   | rps       |           |
-| power supply voltage  | 0x23  | r     | `uint16_t`    | mV        |           |
+| power supply voltage  | 0x23 | r      | `uint16_t`    | mV        |           |
 
 # TODO
 - improve code organization
