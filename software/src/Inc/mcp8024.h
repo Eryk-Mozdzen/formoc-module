@@ -6,7 +6,6 @@
 #include "utilities.h"
 
 #define MCP8024_PWM_MAX_FILL	2000
-#define MCP8024_PWM_DEAD_TIME	0
 
 typedef struct {
 	GPIO_TypeDef *ce_port;
@@ -35,10 +34,6 @@ typedef struct {
 			MCP8024_Config_2_t config_2;
 		} decoded;
 	} registers;
-
-	Vector3f_t fill;
-	Vector3uint16_t fill_h;
-	Vector3uint16_t fill_l;
 } MCP8024_t;
 
 void MCP8024_Init(MCP8024_t *, GPIO_TypeDef *, uint16_t, UART_HandleTypeDef *, TIM_HandleTypeDef *, TIM_HandleTypeDef *);
@@ -51,7 +46,7 @@ void MCP8024_SetConfig(MCP8024_t *, MCP8024_Config_0_t, MCP8024_Config_1_t, MCP8
 void MCP8024_RxCpltCallback(MCP8024_t *);
 
 void MCP8024_SetCompare(MCP8024_t *, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
-void MCP8024_SetFill(MCP8024_t *, Vector3f_t);
+void MCP8024_SetFill(MCP8024_t *, float32x3_t);
 
 #endif
 

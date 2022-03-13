@@ -21,11 +21,11 @@ typedef struct {
 
 	uint8_t ready;
 
-	Vector3f_t voltage;
-	Vector3f_t current;
+	float32x3_t voltage;
+	float32x3_t current;
 
-	Vector3f_t peak_voltage;
-	Vector3f_t peak_current;
+	float32x3_t peak_voltage;
+	float32x3_t peak_current;
 } PhaseCurrent_t;
 
 void PhaseCurrent_Init(PhaseCurrent_t *, ADC_HandleTypeDef *, ADC_HandleTypeDef *);
@@ -34,6 +34,6 @@ void PhaseCurrent_Reset(PhaseCurrent_t *);
 void PhaseCurrent_ConvCpltCallback(PhaseCurrent_t *, ADC_HandleTypeDef *);
 
 uint8_t PhaseCurrent_IsReady(PhaseCurrent_t *);
-Vector3f_t PhaseCurrent_GetCurrent(PhaseCurrent_t *);
+float32x3_t PhaseCurrent_GetCurrent(PhaseCurrent_t *);
 
 #endif

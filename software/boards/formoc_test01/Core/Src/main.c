@@ -135,7 +135,7 @@ int main(void)
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
-  MCP8024_SetFill(&mcp8024, (Vector3f_t){.3f, 0.f, 0.f});
+  MCP8024_SetFill(&mcp8024, (float32x3_t){.3f, 0.f, 0.f});
   HAL_Delay(200);
   Motor_Init(&motor, &htim3, 0.0775f);
 
@@ -168,12 +168,12 @@ int main(void)
 		  float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
 		  float theta = normalize_angle(angle);
 
-		  Vector3f_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
+		  float32x3_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
 
-		  Vector3f_t Iab0 = clark_transformation(Iabc);
-		  Vector3f_t Idq0 = park_transformation(Iab0, theta);
+		  float32x3_t Iab0 = clark_transformation(Iabc);
+		  float32x3_t Idq0 = park_transformation(Iab0, theta);
 
-		  Vector3f_t Vdq0 = {
+		  float32x3_t Vdq0 = {
 				  PID_Update(&Id_controller, Idq0.x, 0),
 				  PID_Update(&Iq_controller, Idq0.y, 3.f),
 				  0
@@ -185,8 +185,8 @@ int main(void)
 		  Vdq0.y = (1.f - Vdq0.y)*0.5f;
 		  Vdq0.z = (1.f - Vdq0.z)*0.5f;
 
-		  Vector3f_t Vab0 = inverse_park_transformation(Vdq0, theta);
-		  Vector3f_t Vabc = space_vector_modulation(Vab0);
+		  float32x3_t Vab0 = inverse_park_transformation(Vdq0, theta);
+		  float32x3_t Vabc = space_vector_modulation(Vab0);
 
 		  /*Vector3f_t Vabc = inverse_clark_transformation(Vab0);
 		  Vabc.x = (1.f - Vabc.x)*0.5f;

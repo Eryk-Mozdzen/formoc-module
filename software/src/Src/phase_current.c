@@ -6,10 +6,10 @@ void PhaseCurrent_Init(PhaseCurrent_t *curr, ADC_HandleTypeDef *b_phase_adc, ADC
 	curr->c_phase_adc = c_phase_adc;
 
 	curr->ready = 0;
-	curr->voltage = (const Vector3f_t){0};
-	curr->current = (const Vector3f_t){0};
-	curr->peak_voltage = (const Vector3f_t){0};
-	curr->peak_current = (const Vector3f_t){0};
+	curr->voltage = (const float32x3_t){0};
+	curr->current = (const float32x3_t){0};
+	curr->peak_voltage = (const float32x3_t){0};
+	curr->peak_current = (const float32x3_t){0};
 
 	HAL_ADCEx_Calibration_Start(curr->b_phase_adc, ADC_SINGLE_ENDED);
 	HAL_ADCEx_Calibration_Start(curr->c_phase_adc, ADC_SINGLE_ENDED);
@@ -22,10 +22,10 @@ void PhaseCurrent_Init(PhaseCurrent_t *curr, ADC_HandleTypeDef *b_phase_adc, ADC
 
 void PhaseCurrent_Reset(PhaseCurrent_t *curr) {
 	curr->ready = 0;
-	curr->voltage = (const Vector3f_t){0};
-	curr->current = (const Vector3f_t){0};
-	curr->peak_voltage = (const Vector3f_t){0};
-	curr->peak_current = (const Vector3f_t){0};
+	curr->voltage = (const float32x3_t){0};
+	curr->current = (const float32x3_t){0};
+	curr->peak_voltage = (const float32x3_t){0};
+	curr->peak_current = (const float32x3_t){0};
 }
 
 void PhaseCurrent_ConvCpltCallback(PhaseCurrent_t *curr, ADC_HandleTypeDef *hadc) {
@@ -36,7 +36,7 @@ uint8_t PhaseCurrent_IsReady(PhaseCurrent_t *curr) {
 	return curr->ready;
 }
 
-Vector3f_t PhaseCurrent_GetCurrent(PhaseCurrent_t *curr) {
+float32x3_t PhaseCurrent_GetCurrent(PhaseCurrent_t *curr) {
 	curr->ready = 0;
 
 	// read voltage
