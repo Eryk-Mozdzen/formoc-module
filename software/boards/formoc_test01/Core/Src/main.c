@@ -79,6 +79,9 @@ PhaseCurrent_t phase_current;
 PID_StructTypeDef Id_controller;
 PID_StructTypeDef Iq_controller;
 
+arm_pid_instance_f32 Id_controller_arm;
+arm_pid_instance_f32 Iq_controller_arm;
+
 /* USER CODE END 0 */
 
 /**
@@ -129,8 +132,17 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  PID_Init(&Id_controller, 0.5f, 0.6f, 0.f, 1.f, 1.f);
-  PID_Init(&Iq_controller, 0.75f, 0.45f, 0.f, 5.f, 1.f);
+  PID_Init(&Id_controller, 0.5f, 0.f, 0.f, 1.f, 1.f);
+  PID_Init(&Iq_controller, 0.75f, 0.f, 0.f, 5.f, 1.f);
+
+  Id_controller_arm.Kp = 0.5f;
+  Id_controller_arm.Ki = 0.f;
+  Id_controller_arm.Kd = 0.f;
+  arm_pid_init_f32(&Id_controller_arm, 1);
+  Iq_controller_arm.Kp = 0.75f;
+  Iq_controller_arm.Ki = 0.f;
+  Iq_controller_arm.Kd = 0.f;
+  arm_pid_init_f32(&Iq_controller_arm, 1);
 
   MCP8024_Init(&mcp8024, CE_GPIO_Port, CE_Pin, &huart1, &htim2, &htim1);
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
@@ -144,8 +156,20 @@ int main(void)
   __HAL_TIM_SET_COUNTER(&htim15, 2400);
   HAL_TIM_Base_Start(&htim15);
 
-  HAL_TIM_Base_Start_IT(&htim16);
+  //HAL_TIM_Base_Start_IT(&htim16);
   //HAL_TIM_Base_Start_IT(&htim17);
+
+  float32_t theta;
+  float32x3_t Iabc;
+
+  float32_t sin_theta;
+  float32_t cos_theta;
+
+  float32x3_t Iab0;
+  float32x3_t Idq0;
+  float32x3_t Vdq0;
+  float32x3_t Vab0;
+  float32x3_t Vabc;
 
   while(1) {
 
@@ -161,43 +185,52 @@ int main(void)
 		  MCP8024_GetStatus(&mcp8024);
 	  }*/
 
+	  flags.foc_loop = 1;
+
 	  if(flags.foc_loop) {
-	  //if(PhaseCurrent_IsReady(&phase_current)) {
 		  flags.foc_loop = 0;
 
-		  float angle = Motor_GetElectricalPosition(&motor)*_2_PI;
-		  float theta = normalize_angle(angle);
+		  /*theta = normalize_angle(Motor_GetElectricalPosition(&motor)*_2_PI);
+		  Iabc = PhaseCurrent_GetCurrent(&phase_current);
 
-		  float32x3_t Iabc = PhaseCurrent_GetCurrent(&phase_current);
+		  sin_theta = sin(theta);
+		  cos_theta = cos(theta);
 
-		  float32x3_t Iab0 = clark_transformation(Iabc);
-		  float32x3_t Idq0 = park_transformation(Iab0, theta);
+		  Iab0 = clark_transformation(Iabc);
+		  Idq0 = park_transformation(Iab0, theta);
 
-		  float32x3_t Vdq0 = {
+		  Vdq0 = (const float32x3_t){
 				  PID_Update(&Id_controller, Idq0.x, 0),
 				  PID_Update(&Iq_controller, Idq0.y, 3.f),
 				  0
 		  };
 
-		  //Vector3f_t Vdq0 = {2, 0, 0};
+		  Vdq0.x = (1.f - Vdq0.x)*0.5f;
+		  Vdq0.y = (1.f - Vdq0.y)*0.5f;
+
+		  Vab0 = inverse_park_transformation(Vdq0, theta);
+		  Vabc = space_vector_modulation(Vab0);*/
+
+		  // --------------------------------------------
+
+		  arm_sin_cos_f32(theta, &sin_theta, &cos_theta);
+
+		  arm_clarke_f32(Iabc.x, Iabc.y, &Iab0.x, &Iab0.y);
+		  arm_park_f32(Iab0.x, Iab0.y, &Idq0.x, &Idq0.y, sin_theta, cos_theta);
+
+		  Vdq0.x = -arm_pid_f32(&Id_controller_arm, Idq0.x - 0.f);	// setpoint = 0
+		  Vdq0.y = -arm_pid_f32(&Iq_controller_arm, Idq0.y - 3.f);	// setpoint = 3
 
 		  Vdq0.x = (1.f - Vdq0.x)*0.5f;
 		  Vdq0.y = (1.f - Vdq0.y)*0.5f;
-		  Vdq0.z = (1.f - Vdq0.z)*0.5f;
 
-		  float32x3_t Vab0 = inverse_park_transformation(Vdq0, theta);
-		  float32x3_t Vabc = space_vector_modulation(Vab0);
+		  arm_inv_park_f32(Vdq0.x, Vdq0.y, &Vab0.x, &Vab0.y, sin_theta, cos_theta);
+		  Vabc = space_vector_modulation(Vab0);
 
-		  /*Vector3f_t Vabc = inverse_clark_transformation(Vab0);
-		  Vabc.x = (1.f - Vabc.x)*0.5f;
-		  Vabc.y = (1.f - Vabc.y)*0.5f;
-		  Vabc.z = (1.f - Vabc.z)*0.5f;*/
-
-		  //Vabc = (const Vector3f_t){0.f, 0.f, 0.f};
+		  // ---------------------------------------------
 
 		  MCP8024_SetFill(&mcp8024, Vabc);
 	  }
-
 
     /* USER CODE END WHILE */
 

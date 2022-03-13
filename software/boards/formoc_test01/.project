@@ -31,9 +31,14 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src</name>
+			<name>controller</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/src</locationURI>
+			<locationURI>WORKSPACE_LOC/src/controller</locationURI>
+		</link>
+		<link>
+			<name>utils</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/src/utils</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
