@@ -1,0 +1,3 @@
+/home/emozdzen/Desktop/formoc-module/software/formoc-test02/build/CMakeFiles/rebuild_cache.dir
+/home/emozdzen/Desktop/formoc-module/software/formoc-test02/build/CMakeFiles/edit_cache.dir
+/home/emozdzen/Desktop/formoc-module/software/formoc-test02/build/CMakeFiles/formoc_test02.elf.dir
