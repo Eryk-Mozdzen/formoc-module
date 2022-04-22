@@ -49,8 +49,11 @@ struct {
 | velocity limit        | 0x31 | w      | `float32_t`   | rps       |           |
 
 # TODO
-- improve code organization
+- check voltages
+- solder cables
+- one-way, reliable communication
+- GET RID OF OVERCURRENT "PROTECTION"
 - improve PID tunning
 - find torque measurement method
+- improve code organization
 - add interface
-- add filter for phase current reading
