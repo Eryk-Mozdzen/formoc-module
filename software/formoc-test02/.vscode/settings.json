@@ -1,0 +1,60 @@
+{
+    "workbench.colorCustomizations": {
+        "statusBar.background" : "#1A1A1A",
+        "statusBar.noFolderBackground" : "#212121",
+        "statusBar.debuggingBackground": "#263238"
+    },    
+
+	"actionButtons": {
+        "defaultColor": "white",
+        "loadNpmCommands": false,
+        "reloadButton": "♻️",
+        "commands": [
+            {
+                "cwd": "${workspaceFolder}/build",
+                "name": "Build",
+                "command": "make"
+            },
+            {
+                "cwd": "${workspaceFolder}/build",
+                "name": "Build Clean",
+                "command": "make -B"
+            },
+            {
+                "cwd": "${workspaceFolder}/build",
+                "name": "Build & Flash",
+                "command": "make; st-flash reset; st-flash write formoc_test02.bin 0x08000000;"
+            },
+            {
+                "cwd": "${workspaceFolder}/build",
+                "name": "Reset",
+                "command": "st-flash reset"
+            },
+            {
+                "cwd": "${workspaceFolder}/build",
+                "name": "Build & Flash & Reset",
+                "command": "make; st-flash --reset write formoc_test02.bin 0x08000000;"
+            }
+        ]
+    },
+    "files.associations": {
+        "array": "c",
+        "math.h": "c",
+        "stdint.h": "c",
+        "stm32f4xx.h": "c",
+        "_stdint.h": "c",
+        "cstdint": "c",
+        "task.h": "c",
+        "timers.h": "c",
+        "stack_macros.h": "c",
+        "system_stm32f4xx.h": "c",
+        "freertos.h": "c",
+        "semphr.h": "c",
+        "freertos_cli.h": "c"
+    },
+
+    "cortex-debug.gdbPath": "/usr/bin/arm-none-eabi-gdb",
+    "cortex-debug.stutilPath": "/usr/local/bin/st-util",
+
+    "C_Cpp.intelliSenseEngine": "Tag Parser"
+}

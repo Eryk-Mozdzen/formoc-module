@@ -136,7 +136,7 @@ int main(void)
   PhaseCurrent_Init(&phase_current, &hadc1, &hadc2);
 
   MCP8024_SetFill(&mcp8024, (float32x3_t){.3f, 0.f, 0.f});
-  HAL_Delay(200);
+  HAL_Delay(1000);
   Motor_Init(&motor, &htim3, 0.0775f);
 
   __HAL_TIM_SET_COUNTER(mcp8024.mosfet_l_timer, 0);
@@ -160,6 +160,23 @@ int main(void)
 
 		  MCP8024_GetStatus(&mcp8024);
 	  }*/
+
+	  if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)) {
+		  HAL_GPIO_WritePin(CE_GPIO_Port, CE_Pin, GPIO_PIN_RESET);
+		  HAL_Delay(100);
+		  HAL_GPIO_WritePin(CE_GPIO_Port, CE_Pin, GPIO_PIN_SET);
+		  HAL_Delay(100);
+	  }
+
+	  /*PhaseCurrent_GetCurrent(&phase_current);
+
+		__HAL_TIM_SET_COMPARE(mcp8024.mosfet_h_timer, TIM_CHANNEL_1, 0);
+		__HAL_TIM_SET_COMPARE(mcp8024.mosfet_h_timer, TIM_CHANNEL_2, 0);
+		__HAL_TIM_SET_COMPARE(mcp8024.mosfet_h_timer, TIM_CHANNEL_3, 0);
+
+		__HAL_TIM_SET_COMPARE(mcp8024.mosfet_l_timer, TIM_CHANNEL_1, 0);
+		__HAL_TIM_SET_COMPARE(mcp8024.mosfet_l_timer, TIM_CHANNEL_2, 0);
+		__HAL_TIM_SET_COMPARE(mcp8024.mosfet_l_timer, TIM_CHANNEL_3, 0);*/
 
 	  if(flags.foc_loop) {
 	  //if(PhaseCurrent_IsReady(&phase_current)) {

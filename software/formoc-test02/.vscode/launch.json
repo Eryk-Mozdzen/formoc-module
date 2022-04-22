@@ -1,0 +1,17 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "cortex-debug",
+			"cwd": "${workspaceFolder}",
+			"device": "STM32L476RG",
+			"interface": "swd",
+			"name": "Cortex Debug",
+			"request": "launch",
+			"runToEntryPoint": "main",
+			"servertype": "stutil",
+			"executable": "./build/formoc_test02.elf",
+			"showDevDebugOutput": "both",
+		}
+	]
+}

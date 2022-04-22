@@ -44,19 +44,12 @@ float32x3_t PhaseCurrent_GetCurrent(PhaseCurrent_t *curr) {
 	curr->voltage.y = PHASE_CURRENT_GET_ADC_VOLTAGE(curr->phase_buffer[0]);
 	curr->voltage.z = PHASE_CURRENT_GET_ADC_VOLTAGE(curr->phase_buffer[1]);
 
-	//curr->voltage.y = (curr->voltage.y>0.001f) ? curr->voltage.y : 0.f;
-	//curr->voltage.z = (curr->voltage.z>0.001f) ? curr->voltage.z : 0.f;
-
 	// calculate current
-	curr->current.y = PHASE_CURRENT_VOLT_TO_AMP(curr->voltage.y);
-	curr->current.z = PHASE_CURRENT_VOLT_TO_AMP(curr->voltage.z);
+	curr->current.y = PHASE_CURRENT_VOLT_TO_AMP_B(curr->phase_buffer[0]);
+	curr->current.z = PHASE_CURRENT_VOLT_TO_AMP_C(curr->phase_buffer[1]);
 
 	// Kirchhoff's current law
 	curr->current.x = -(curr->current.y + curr->current.z);
-
-	//curr->current.x = (curr->current.x>0.001f) ? curr->current.x : 0.f;
-	//curr->current.y = (curr->current.y>0.001f) ? curr->current.y : 0.f;
-	//curr->current.z = (curr->current.z>0.001f) ? curr->current.z : 0.f;
 
 	curr->peak_voltage.x = 0.f;
 	curr->peak_voltage.y = MAX(curr->peak_voltage.y, fabs(curr->voltage.y));

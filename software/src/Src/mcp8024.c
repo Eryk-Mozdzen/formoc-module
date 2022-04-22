@@ -14,7 +14,7 @@ void MCP8024_Init(MCP8024_t *mcp8024,
 	mcp8024->com_uart = com_uart;
 
 	HAL_GPIO_WritePin(mcp8024->ce_port, mcp8024->ce_pin, GPIO_PIN_RESET);
-	//HAL_Delay(100);
+	HAL_Delay(100);
 
 	HAL_TIM_PWM_Start(mcp8024->mosfet_h_timer, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(mcp8024->mosfet_h_timer, TIM_CHANNEL_2);
@@ -24,13 +24,19 @@ void MCP8024_Init(MCP8024_t *mcp8024,
 	HAL_TIM_PWM_Start(mcp8024->mosfet_l_timer, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(mcp8024->mosfet_l_timer, TIM_CHANNEL_3);
 
-	MCP8024_SetCompare(mcp8024, 0, 0, 0, 0, 0, 0);
-
 	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_l_timer, 0);
 	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_h_timer, 0);
 
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_1, 0);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_2, 0);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_h_timer, TIM_CHANNEL_3, 0);
+
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_1, MCP8024_PWM_MAX_FILL);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_2, MCP8024_PWM_MAX_FILL);
+	__HAL_TIM_SET_COMPARE(mcp8024->mosfet_l_timer, TIM_CHANNEL_3, MCP8024_PWM_MAX_FILL);
+
 	HAL_GPIO_WritePin(mcp8024->ce_port, mcp8024->ce_pin, GPIO_PIN_SET);
-	//HAL_Delay(100);
+	HAL_Delay(100);
 
 	// set configuration
 	MCP8024_Config(mcp8024);
@@ -72,7 +78,7 @@ void MCP8024_SetConfig(MCP8024_t *mcp8024, MCP8024_Config_0_t config_0, MCP8024_
 }
 
 void MCP8024_RxCpltCallback(MCP8024_t *mcp8024) {
-	mcp8024->com_rx_ready = 1;
+	/*mcp8024->com_rx_ready = 1;
 
 	switch(mcp8024->com_rx_buffer[2]) {
 		case 0x05:
@@ -97,19 +103,68 @@ void MCP8024_RxCpltCallback(MCP8024_t *mcp8024) {
 		case 0x08:
 		case 0x47:
 		case 0x48:	mcp8024->registers.raw.config_2 = mcp8024->com_rx_buffer[3];	break;
-	}
+	}*/
 }
 
 void __MCP8024_WriteRead(MCP8024_t *mcp8024, uint8_t cmd, uint8_t *argument) {
-	mcp8024->com_rx_ready = 0;
-
 	uint8_t tx_buffer[2] = {cmd, argument ? *argument : 0};
-	uint8_t *rx_buffer = argument ? mcp8024->com_rx_buffer : &mcp8024->com_rx_buffer[1];
+	volatile uint8_t rx_buffer[2] = {0};
 
-	HAL_UART_Receive_DMA(mcp8024->com_uart, rx_buffer, argument ? 4 : 3);
-	HAL_UART_Transmit_DMA(mcp8024->com_uart, tx_buffer, argument ? 2 : 1);
+	//HAL_UART_Transmit(mcp8024->com_uart, tx_buffer, argument ? 2 : 1, 100);
+	//mcp8024->uart_status = HAL_UART_Receive(mcp8024->com_uart, rx_buffer, 2, 1000);
 
-	while(!mcp8024->com_rx_ready);
+	USART1->TDR = tx_buffer[0];
+	while(!(USART1->ISR & USART_ISR_TC));
+	USART1->TDR = tx_buffer[1];
+	while(!(USART1->ISR & USART_ISR_TC));
+
+	HAL_Delay(100);
+
+	/*GPIOC->BSRR = GPIO_PIN_6;
+	GPIOC->BRR = GPIO_PIN_6;
+
+	rx_buffer[0] = USART1->RDR;
+	rx_buffer[0] = USART1->RDR;
+
+	while(!(USART1->ISR & USART_ISR_RXNE));
+	rx_buffer[0] = USART1->RDR;
+
+	GPIOC->BSRR = GPIO_PIN_6;
+
+	HAL_Delay(100);
+
+	GPIOC->BRR = GPIO_PIN_6;*/
+
+	/*while(!(USART1->ISR & USART_ISR_RXNE));
+	rx_buffer[1] = USART1->RDR;
+
+	GPIOC->BSRR = GPIO_PIN_6;
+	GPIOC->BRR = GPIO_PIN_6;*/
+
+	/*switch(rx_buffer[0]) {
+		case 0x05:
+		case 0x45:
+		case 0x85:	mcp8024->registers.raw.status_0 = rx_buffer[1];	break;
+
+		case 0x06:
+		case 0x46:
+		case 0x86:	mcp8024->registers.raw.status_1 = rx_buffer[1];	break;
+
+		case 0x01:
+		case 0x02:
+		case 0x41:
+		case 0x42:	mcp8024->registers.raw.config_0 = rx_buffer[1];	break;
+
+		case 0x03:
+		case 0x04:
+		case 0x43:
+		case 0x44:	mcp8024->registers.raw.config_1 = rx_buffer[1];	break;
+
+		case 0x07:
+		case 0x08:
+		case 0x47:
+		case 0x48:	mcp8024->registers.raw.config_2 = rx_buffer[1];	break;
+	}*/
 }
 
 

@@ -5,7 +5,7 @@
 #include "mcp8024_def.h"
 #include "utilities.h"
 
-#define MCP8024_PWM_MAX_FILL	2000
+#define MCP8024_PWM_MAX_FILL	1999
 
 typedef struct {
 	GPIO_TypeDef *ce_port;
@@ -14,9 +14,8 @@ typedef struct {
 	TIM_HandleTypeDef *mosfet_h_timer;
 	TIM_HandleTypeDef *mosfet_l_timer;
 
+	HAL_StatusTypeDef uart_status;
 	UART_HandleTypeDef *com_uart;
-	uint8_t com_rx_buffer[4];
-	uint8_t com_rx_ready;
 
 	union {
 		struct {
