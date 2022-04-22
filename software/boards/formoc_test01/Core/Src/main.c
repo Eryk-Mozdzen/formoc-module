@@ -125,7 +125,6 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM17_Init();
   MX_TIM15_Init();
-  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -157,7 +156,7 @@ int main(void)
   __HAL_TIM_SET_COUNTER(&htim15, 2400);
   HAL_TIM_Base_Start(&htim15);
 
-  //HAL_TIM_Base_Start_IT(&htim16);
+  HAL_TIM_Base_Start_IT(&htim16);
   //HAL_TIM_Base_Start_IT(&htim17);
 
   float32_t theta;
@@ -186,12 +185,16 @@ int main(void)
 		  MCP8024_GetStatus(&mcp8024);
 	  }*/
 
-	  flags.foc_loop = 1;
+	  if(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)) {
+		  MCP8024_GetStatus(&mcp8024);
+	  }
+
+	  //flags.foc_loop = 1;
 
 	  if(flags.foc_loop) {
 		  flags.foc_loop = 0;
 
-		  /*theta = normalize_angle(Motor_GetElectricalPosition(&motor)*_2_PI);
+		  theta = normalize_angle(Motor_GetElectricalPosition(&motor)*_2_PI);
 		  Iabc = PhaseCurrent_GetCurrent(&phase_current);
 
 		  sin_theta = sin(theta);
@@ -210,11 +213,11 @@ int main(void)
 		  Vdq0.y = (1.f - Vdq0.y)*0.5f;
 
 		  Vab0 = inverse_park_transformation(Vdq0, theta);
-		  Vabc = space_vector_modulation(Vab0);*/
+		  Vabc = space_vector_modulation(Vab0);
 
 		  // --------------------------------------------
 
-		  arm_sin_cos_f32(theta, &sin_theta, &cos_theta);
+		  /*arm_sin_cos_f32(theta, &sin_theta, &cos_theta);
 
 		  arm_clarke_f32(Iabc.x, Iabc.y, &Iab0.x, &Iab0.y);
 		  arm_park_f32(Iab0.x, Iab0.y, &Idq0.x, &Idq0.y, sin_theta, cos_theta);
@@ -226,7 +229,7 @@ int main(void)
 		  Vdq0.y = (1.f - Vdq0.y)*0.5f;
 
 		  arm_inv_park_f32(Vdq0.x, Vdq0.y, &Vab0.x, &Vab0.y, sin_theta, cos_theta);
-		  Vabc = space_vector_modulation(Vab0);
+		  Vabc = space_vector_modulation(Vab0);*/
 
 		  // ---------------------------------------------
 

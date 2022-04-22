@@ -14,7 +14,7 @@ void MCP8024_Init(MCP8024_t *mcp8024,
 	mcp8024->com_uart = com_uart;
 
 	HAL_GPIO_WritePin(mcp8024->ce_port, mcp8024->ce_pin, GPIO_PIN_RESET);
-	//HAL_Delay(100);
+	HAL_Delay(100);
 
 	HAL_TIM_PWM_Start(mcp8024->mosfet_h_timer, TIM_CHANNEL_1);
 	HAL_TIM_PWM_Start(mcp8024->mosfet_h_timer, TIM_CHANNEL_2);
@@ -30,10 +30,10 @@ void MCP8024_Init(MCP8024_t *mcp8024,
 	__HAL_TIM_SET_COUNTER(mcp8024->mosfet_h_timer, 0);
 
 	HAL_GPIO_WritePin(mcp8024->ce_port, mcp8024->ce_pin, GPIO_PIN_SET);
-	//HAL_Delay(100);
+	HAL_Delay(100);
 
 	// set configuration
-	//MCP8024_Config(mcp8024);
+	MCP8024_Config(mcp8024);
 }
 
 void MCP8024_Config(MCP8024_t *mcp8024) {
@@ -51,7 +51,9 @@ void MCP8024_Config(MCP8024_t *mcp8024) {
 	config_2.driver_dead_time = 				MCP8024_CONFIG_DRIVER_DEAD_TIME_2_US;
 	config_2.driver_blanking_time = 			MCP8024_CONFIG_DRIVER_BLANKING_TIME_4_US;
 
+	MCP8024_GetConfig(mcp8024);
 	MCP8024_SetConfig(mcp8024, config_0, config_1, config_2);
+	MCP8024_GetConfig(mcp8024);
 }
 
 void MCP8024_GetStatus(MCP8024_t *mcp8024) {
